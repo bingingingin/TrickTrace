@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.cache/
+.tools/
+.venv/
+__pycache__/
+*.pyc
+*.log
+.env
+.env.*
+!.env.example
+test-results/
+playwright-report/
+.wrangler/
+artifacts/
