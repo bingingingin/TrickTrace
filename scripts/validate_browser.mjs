@@ -1,0 +1,30 @@
+import {chromium} from '@playwright/test';
+import fs from 'node:fs/promises';
+const out='artifacts';await fs.mkdir(out,{recursive:true});
+const browser=await chromium.launch({channel:'chrome',headless:true});
+const page=await browser.newPage({viewport:{width:1440,height:1050}});
+const errors=[];page.on('pageerror',e=>errors.push(e.message));
+await page.goto('http://127.0.0.1:5173/');
+await page.waitForFunction(()=>document.querySelector('.trick-total')?.textContent?.includes('12'),{timeout:60000});
+await page.screenshot({path:out+'/desktop.png',fullPage:true});
+await page.getByRole('button',{name:'查看完整最优牌路',exact:false}).click();
+await page.locator('.line-panel').waitFor({timeout:120000});
+const lineCount=await page.locator('.line-trick').count();
+if(lineCount!==13)throw Error('Expected 13 tricks, got '+lineCount);
+await page.screenshot({path:out+'/line.png',fullPage:true});
+await page.getByRole('button',{name:'放到牌桌逐张回放'}).click();
+await page.getByRole('button',{name:'下一步',exact:true}).click();
+await page.waitForTimeout(500);if(await page.locator('.played-card').count()!==1)throw Error('Playback failed');
+await page.setViewportSize({width:390,height:844});await page.screenshot({path:out+'/mobile.png',fullPage:true});
+const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth);if(overflow)throw Error('Mobile horizontal overflow');
+const results=[];
+for(const name of await fs.readdir('images')){
+ if(!/\.jpg$/i.test(name))continue;
+ console.log('Recognizing',name);
+ const result=await page.evaluate(async(name)=>{const {recognize}=await import('/src/vision/recognize.ts');const blob=await (await fetch('/images/'+encodeURIComponent(name))).blob();return await recognize(new File([blob],name,{type:'image/jpeg'}),()=>{});},name);
+ results.push({name,...result});
+ console.log(name,result.layout,JSON.stringify(result.board.position.hands));
+}
+await fs.writeFile(out+'/recognition-results.json',JSON.stringify(results,null,2));
+await fs.writeFile(out+'/browser-report.json',JSON.stringify({errors,lineCount,overflow},null,2));
+await browser.close();

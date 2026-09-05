@@ -1,0 +1,5 @@
+let worker:Worker|undefined;let seq=0;
+const pending=new Map<number,{resolve:(v:any)=>void;reject:(e:Error)=>void;progress?:(n:number)=>void;timer:ReturnType<typeof setTimeout>}>();
+function ensure(){if(worker)return worker;worker=new Worker(new URL('./solver.worker.ts',import.meta.url),{type:'module'});worker.onmessage=({data})=>{const p=pending.get(data.id);if(!p)return;if(data.progress!==undefined){p.progress?.(data.progress);return;}clearTimeout(p.timer);pending.delete(data.id);data.error?p.reject(Error(data.error)):p.resolve(data.result);};worker.onerror=e=>cancelAll(e.message||'求解器加载失败');return worker;}
+export function cancelAll(message='计算已取消'){worker?.terminate();worker=undefined;for(const p of pending.values()){clearTimeout(p.timer);p.reject(Error(message));}pending.clear();}
+export function compute<T>(method:string,args:unknown[],progress?:(n:number)=>void,timeout=180000):Promise<T>{const w=ensure(),id=++seq;return new Promise((resolve,reject)=>{const timer=setTimeout(()=>cancelAll('计算超时，可重试或缩小分析范围'),timeout);pending.set(id,{resolve,reject,progress,timer});w.postMessage({id,method,args});});}
