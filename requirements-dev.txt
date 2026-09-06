@@ -1,0 +1,8 @@
+# Python 3.11; install torch separately for the desired CPU/CUDA runtime.
+numpy==1.26.4
+Pillow==11.3.0
+onnx==1.22.0
+onnxruntime==1.29.0
+ml-dtypes==0.5.4
+fonttools==4.50.0
+brotli==1.2.0

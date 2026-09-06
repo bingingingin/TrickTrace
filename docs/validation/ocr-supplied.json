@@ -1,0 +1,198 @@
+{
+  "model": {
+    "seed": 418,
+    "training": 22000,
+    "validation": 2000,
+    "validationAccuracy": 0.9185000061988831
+  },
+  "summary": {
+    "images": 5,
+    "exactImages": 4,
+    "correct": 256,
+    "found": 259,
+    "expected": 260
+  },
+  "results": [
+    {
+      "file": "双明手1.jpg",
+      "exact": true,
+      "differences": [
+        {
+          "seat": "N",
+          "missing": [],
+          "extra": [],
+          "correct": 13,
+          "found": 13
+        },
+        {
+          "seat": "E",
+          "missing": [],
+          "extra": [],
+          "correct": 13,
+          "found": 13
+        },
+        {
+          "seat": "S",
+          "missing": [],
+          "extra": [],
+          "correct": 13,
+          "found": 13
+        },
+        {
+          "seat": "W",
+          "missing": [],
+          "extra": [],
+          "correct": 13,
+          "found": 13
+        }
+      ]
+    },
+    {
+      "file": "双明手2.jpg",
+      "exact": true,
+      "differences": [
+        {
+          "seat": "N",
+          "missing": [],
+          "extra": [],
+          "correct": 13,
+          "found": 13
+        },
+        {
+          "seat": "E",
+          "missing": [],
+          "extra": [],
+          "correct": 13,
+          "found": 13
+        },
+        {
+          "seat": "S",
+          "missing": [],
+          "extra": [],
+          "correct": 13,
+          "found": 13
+        },
+        {
+          "seat": "W",
+          "missing": [],
+          "extra": [],
+          "correct": 13,
+          "found": 13
+        }
+      ]
+    },
+    {
+      "file": "双明手3.jpg",
+      "exact": true,
+      "differences": [
+        {
+          "seat": "N",
+          "missing": [],
+          "extra": [],
+          "correct": 13,
+          "found": 13
+        },
+        {
+          "seat": "E",
+          "missing": [],
+          "extra": [],
+          "correct": 13,
+          "found": 13
+        },
+        {
+          "seat": "S",
+          "missing": [],
+          "extra": [],
+          "correct": 13,
+          "found": 13
+        },
+        {
+          "seat": "W",
+          "missing": [],
+          "extra": [],
+          "correct": 13,
+          "found": 13
+        }
+      ]
+    },
+    {
+      "file": "双明手4.jpg",
+      "exact": true,
+      "differences": [
+        {
+          "seat": "N",
+          "missing": [],
+          "extra": [],
+          "correct": 13,
+          "found": 13
+        },
+        {
+          "seat": "E",
+          "missing": [],
+          "extra": [],
+          "correct": 13,
+          "found": 13
+        },
+        {
+          "seat": "S",
+          "missing": [],
+          "extra": [],
+          "correct": 13,
+          "found": 13
+        },
+        {
+          "seat": "W",
+          "missing": [],
+          "extra": [],
+          "correct": 13,
+          "found": 13
+        }
+      ]
+    },
+    {
+      "file": "双明手5.jpg",
+      "exact": false,
+      "differences": [
+        {
+          "seat": "N",
+          "missing": [],
+          "extra": [],
+          "correct": 13,
+          "found": 13
+        },
+        {
+          "seat": "E",
+          "missing": [
+            "CK",
+            "C4"
+          ],
+          "extra": [
+            "H3",
+            "D4"
+          ],
+          "correct": 11,
+          "found": 13
+        },
+        {
+          "seat": "S",
+          "missing": [
+            "S5",
+            "DT"
+          ],
+          "extra": [
+            "DJ"
+          ],
+          "correct": 11,
+          "found": 12
+        },
+        {
+          "seat": "W",
+          "missing": [],
+          "extra": [],
+          "correct": 13,
+          "found": 13
+        }
+      ]
+    }
+  ]
+}

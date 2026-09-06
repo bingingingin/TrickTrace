@@ -1,0 +1,651 @@
+{
+  "summary": {
+    "images": 80,
+    "exactImages": 29,
+    "correct": 3507,
+    "found": 3746,
+    "expected": 4160
+  },
+  "results": [
+    {
+      "file": "dds-001-pala.ttf.png",
+      "font": "pala.ttf",
+      "correct": 39,
+      "found": 46,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-002-bookos.ttf.png",
+      "font": "bookos.ttf",
+      "correct": 52,
+      "found": 52,
+      "expected": 52,
+      "exact": true
+    },
+    {
+      "file": "dds-003-corbel.ttf.png",
+      "font": "corbel.ttf",
+      "correct": 39,
+      "found": 46,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-004-gadugi.ttf.png",
+      "font": "gadugi.ttf",
+      "correct": 39,
+      "found": 39,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-005-pala.ttf.png",
+      "font": "pala.ttf",
+      "correct": 52,
+      "found": 52,
+      "expected": 52,
+      "exact": true
+    },
+    {
+      "file": "dds-006-bookos.ttf.png",
+      "font": "bookos.ttf",
+      "correct": 39,
+      "found": 44,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-007-corbel.ttf.png",
+      "font": "corbel.ttf",
+      "correct": 39,
+      "found": 49,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-008-gadugi.ttf.png",
+      "font": "gadugi.ttf",
+      "correct": 48,
+      "found": 48,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-009-pala.ttf.png",
+      "font": "pala.ttf",
+      "correct": 39,
+      "found": 50,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-010-bookos.ttf.png",
+      "font": "bookos.ttf",
+      "correct": 52,
+      "found": 52,
+      "expected": 52,
+      "exact": true
+    },
+    {
+      "file": "dds-011-corbel.ttf.png",
+      "font": "corbel.ttf",
+      "correct": 36,
+      "found": 47,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-012-gadugi.ttf.png",
+      "font": "gadugi.ttf",
+      "correct": 44,
+      "found": 48,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-013-pala.ttf.png",
+      "font": "pala.ttf",
+      "correct": 38,
+      "found": 47,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-014-bookos.ttf.png",
+      "font": "bookos.ttf",
+      "correct": 39,
+      "found": 48,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-015-corbel.ttf.png",
+      "font": "corbel.ttf",
+      "correct": 52,
+      "found": 52,
+      "expected": 52,
+      "exact": true
+    },
+    {
+      "file": "dds-016-gadugi.ttf.png",
+      "font": "gadugi.ttf",
+      "correct": 39,
+      "found": 39,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-017-pala.ttf.png",
+      "font": "pala.ttf",
+      "correct": 39,
+      "found": 47,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-018-bookos.ttf.png",
+      "font": "bookos.ttf",
+      "correct": 52,
+      "found": 52,
+      "expected": 52,
+      "exact": true
+    },
+    {
+      "file": "dds-019-corbel.ttf.png",
+      "font": "corbel.ttf",
+      "correct": 52,
+      "found": 52,
+      "expected": 52,
+      "exact": true
+    },
+    {
+      "file": "dds-020-gadugi.ttf.png",
+      "font": "gadugi.ttf",
+      "correct": 39,
+      "found": 39,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-021-pala.ttf.png",
+      "font": "pala.ttf",
+      "correct": 36,
+      "found": 46,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-022-bookos.ttf.png",
+      "font": "bookos.ttf",
+      "correct": 52,
+      "found": 52,
+      "expected": 52,
+      "exact": true
+    },
+    {
+      "file": "dds-023-corbel.ttf.png",
+      "font": "corbel.ttf",
+      "correct": 52,
+      "found": 52,
+      "expected": 52,
+      "exact": true
+    },
+    {
+      "file": "dds-024-gadugi.ttf.png",
+      "font": "gadugi.ttf",
+      "correct": 37,
+      "found": 40,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-025-pala.ttf.png",
+      "font": "pala.ttf",
+      "correct": 41,
+      "found": 41,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-026-bookos.ttf.png",
+      "font": "bookos.ttf",
+      "correct": 52,
+      "found": 52,
+      "expected": 52,
+      "exact": true
+    },
+    {
+      "file": "dds-027-corbel.ttf.png",
+      "font": "corbel.ttf",
+      "correct": 52,
+      "found": 52,
+      "expected": 52,
+      "exact": true
+    },
+    {
+      "file": "dds-028-gadugi.ttf.png",
+      "font": "gadugi.ttf",
+      "correct": 46,
+      "found": 49,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-029-pala.ttf.png",
+      "font": "pala.ttf",
+      "correct": 39,
+      "found": 40,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-030-bookos.ttf.png",
+      "font": "bookos.ttf",
+      "correct": 39,
+      "found": 50,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-031-corbel.ttf.png",
+      "font": "corbel.ttf",
+      "correct": 39,
+      "found": 49,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-032-gadugi.ttf.png",
+      "font": "gadugi.ttf",
+      "correct": 52,
+      "found": 52,
+      "expected": 52,
+      "exact": true
+    },
+    {
+      "file": "dds-033-pala.ttf.png",
+      "font": "pala.ttf",
+      "correct": 39,
+      "found": 39,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-034-bookos.ttf.png",
+      "font": "bookos.ttf",
+      "correct": 39,
+      "found": 47,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-035-corbel.ttf.png",
+      "font": "corbel.ttf",
+      "correct": 52,
+      "found": 52,
+      "expected": 52,
+      "exact": true
+    },
+    {
+      "file": "dds-036-gadugi.ttf.png",
+      "font": "gadugi.ttf",
+      "correct": 46,
+      "found": 50,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-037-pala.ttf.png",
+      "font": "pala.ttf",
+      "correct": 39,
+      "found": 48,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-038-bookos.ttf.png",
+      "font": "bookos.ttf",
+      "correct": 52,
+      "found": 52,
+      "expected": 52,
+      "exact": true
+    },
+    {
+      "file": "dds-039-corbel.ttf.png",
+      "font": "corbel.ttf",
+      "correct": 52,
+      "found": 52,
+      "expected": 52,
+      "exact": true
+    },
+    {
+      "file": "dds-040-gadugi.ttf.png",
+      "font": "gadugi.ttf",
+      "correct": 50,
+      "found": 50,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-041-pala.ttf.png",
+      "font": "pala.ttf",
+      "correct": 38,
+      "found": 38,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-042-bookos.ttf.png",
+      "font": "bookos.ttf",
+      "correct": 39,
+      "found": 42,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-043-corbel.ttf.png",
+      "font": "corbel.ttf",
+      "correct": 36,
+      "found": 46,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-044-gadugi.ttf.png",
+      "font": "gadugi.ttf",
+      "correct": 37,
+      "found": 37,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-045-pala.ttf.png",
+      "font": "pala.ttf",
+      "correct": 52,
+      "found": 52,
+      "expected": 52,
+      "exact": true
+    },
+    {
+      "file": "dds-046-bookos.ttf.png",
+      "font": "bookos.ttf",
+      "correct": 52,
+      "found": 52,
+      "expected": 52,
+      "exact": true
+    },
+    {
+      "file": "dds-047-corbel.ttf.png",
+      "font": "corbel.ttf",
+      "correct": 52,
+      "found": 52,
+      "expected": 52,
+      "exact": true
+    },
+    {
+      "file": "dds-048-gadugi.ttf.png",
+      "font": "gadugi.ttf",
+      "correct": 35,
+      "found": 35,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-049-pala.ttf.png",
+      "font": "pala.ttf",
+      "correct": 37,
+      "found": 44,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-050-bookos.ttf.png",
+      "font": "bookos.ttf",
+      "correct": 52,
+      "found": 52,
+      "expected": 52,
+      "exact": true
+    },
+    {
+      "file": "dds-051-corbel.ttf.png",
+      "font": "corbel.ttf",
+      "correct": 36,
+      "found": 46,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-052-gadugi.ttf.png",
+      "font": "gadugi.ttf",
+      "correct": 50,
+      "found": 50,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-053-pala.ttf.png",
+      "font": "pala.ttf",
+      "correct": 39,
+      "found": 40,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-054-bookos.ttf.png",
+      "font": "bookos.ttf",
+      "correct": 52,
+      "found": 52,
+      "expected": 52,
+      "exact": true
+    },
+    {
+      "file": "dds-055-corbel.ttf.png",
+      "font": "corbel.ttf",
+      "correct": 52,
+      "found": 52,
+      "expected": 52,
+      "exact": true
+    },
+    {
+      "file": "dds-056-gadugi.ttf.png",
+      "font": "gadugi.ttf",
+      "correct": 52,
+      "found": 52,
+      "expected": 52,
+      "exact": true
+    },
+    {
+      "file": "dds-057-pala.ttf.png",
+      "font": "pala.ttf",
+      "correct": 52,
+      "found": 52,
+      "expected": 52,
+      "exact": true
+    },
+    {
+      "file": "dds-058-bookos.ttf.png",
+      "font": "bookos.ttf",
+      "correct": 39,
+      "found": 47,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-059-corbel.ttf.png",
+      "font": "corbel.ttf",
+      "correct": 36,
+      "found": 43,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-060-gadugi.ttf.png",
+      "font": "gadugi.ttf",
+      "correct": 39,
+      "found": 39,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-061-pala.ttf.png",
+      "font": "pala.ttf",
+      "correct": 38,
+      "found": 47,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-062-bookos.ttf.png",
+      "font": "bookos.ttf",
+      "correct": 39,
+      "found": 48,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-063-corbel.ttf.png",
+      "font": "corbel.ttf",
+      "correct": 52,
+      "found": 52,
+      "expected": 52,
+      "exact": true
+    },
+    {
+      "file": "dds-064-gadugi.ttf.png",
+      "font": "gadugi.ttf",
+      "correct": 39,
+      "found": 43,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-065-pala.ttf.png",
+      "font": "pala.ttf",
+      "correct": 39,
+      "found": 39,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-066-bookos.ttf.png",
+      "font": "bookos.ttf",
+      "correct": 39,
+      "found": 42,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-067-corbel.ttf.png",
+      "font": "corbel.ttf",
+      "correct": 52,
+      "found": 52,
+      "expected": 52,
+      "exact": true
+    },
+    {
+      "file": "dds-068-gadugi.ttf.png",
+      "font": "gadugi.ttf",
+      "correct": 52,
+      "found": 52,
+      "expected": 52,
+      "exact": true
+    },
+    {
+      "file": "dds-069-pala.ttf.png",
+      "font": "pala.ttf",
+      "correct": 38,
+      "found": 38,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-070-bookos.ttf.png",
+      "font": "bookos.ttf",
+      "correct": 39,
+      "found": 50,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-071-corbel.ttf.png",
+      "font": "corbel.ttf",
+      "correct": 52,
+      "found": 52,
+      "expected": 52,
+      "exact": true
+    },
+    {
+      "file": "dds-072-gadugi.ttf.png",
+      "font": "gadugi.ttf",
+      "correct": 33,
+      "found": 36,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-073-pala.ttf.png",
+      "font": "pala.ttf",
+      "correct": 39,
+      "found": 39,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-074-bookos.ttf.png",
+      "font": "bookos.ttf",
+      "correct": 39,
+      "found": 45,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-075-corbel.ttf.png",
+      "font": "corbel.ttf",
+      "correct": 52,
+      "found": 52,
+      "expected": 52,
+      "exact": true
+    },
+    {
+      "file": "dds-076-gadugi.ttf.png",
+      "font": "gadugi.ttf",
+      "correct": 52,
+      "found": 52,
+      "expected": 52,
+      "exact": true
+    },
+    {
+      "file": "dds-077-pala.ttf.png",
+      "font": "pala.ttf",
+      "correct": 37,
+      "found": 37,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-078-bookos.ttf.png",
+      "font": "bookos.ttf",
+      "correct": 52,
+      "found": 52,
+      "expected": 52,
+      "exact": true
+    },
+    {
+      "file": "dds-079-corbel.ttf.png",
+      "font": "corbel.ttf",
+      "correct": 36,
+      "found": 44,
+      "expected": 52,
+      "exact": false
+    },
+    {
+      "file": "dds-080-gadugi.ttf.png",
+      "font": "gadugi.ttf",
+      "correct": 37,
+      "found": 37,
+      "expected": 52,
+      "exact": false
+    }
+  ]
+}

@@ -4,8 +4,29 @@
 
 浏览器本地图片识牌、桥牌双明手求解与完整最优牌路追踪。
 
-## 开发状态
+在线测试版：<https://tricktrace.pages.dev/>。源码仓库为私有仓库 `bingingingin/TrickTrace`。
 
-正在实施。功能与验证记录随每次提交更新；不将演示或未验证战术当作已完成能力。
+## 使用
 
-原始测试图片仅保存在私有仓库 images/，不打包到公开网页。
+手动输入时先选方位，再连续点牌；下方 NESW 文本框可以直接编辑，格式为黑桃.红桃.方块.梅花，例如 `AKQ.JT9.432.A765`。`-` 表示缺门，`?` 表示未知手牌。副号自动联动发牌方和局况。截图上传后必须校对，缺牌不会自动补齐。
+
+完整牌局会自动计算定约表。点击表格的至少 7 墩单元格，会设置对应庄家、花色和阶数；点击牌桌上方的定约也能修改。逐张分析中点击手牌出牌，首攻同步显示。自动模式每墩快速出四张，保留四张至少 1 秒后继续；并列最优默认选择最小点数，同点数按黑桃、红桃、方块、梅花排序。
+
+牌桌下方“查看完整最优牌路”展开一条完整 DDS 最优样例。最优不一定唯一；偏离后按新局面重新求解。两家牌模式为采样估计，不代表实际隐藏牌下的必胜策略。
+
+## 开发与验证
+
+```powershell
+npm ci
+npm run dev
+npm run build
+npm test
+```
+
+Python 环境与训练命令见 [docs/python-environment.md](docs/python-environment.md)。DDS 原生对照需要先运行 `scripts/build_dds.py`；上游在 `vendor/dds` 子模块中固定提交。浏览器流程脚本为 `scripts/validate_interactions.mjs` 和 `scripts/validate_revision.mjs`，默认连接本地 5173，可通过 `TRICKTRACE_URL` 验证部署站点。OCR 验证脚本连接开发服务器读取私有验证图片。
+
+生产部署：`npx wrangler pages deploy dist --project-name tricktrace --branch master`。模型、OCR 引擎、WASM 与字体均随站点托管；原始测试图片仅保存在私有仓库 `images/`，不打包到公开网页。字体采用 OFL 授权的 Noto Sans SC，WOFF2 按 Unicode 范围加载。
+
+## 当前边界
+
+这是持续开发的测试版，未完成原始计划的全部验收。低清旋转牌角、扇形牌和竖排明手仍有漏牌/错牌，方位与当前墩需要核对；不以合成字符准确率代替真实整图效果。投入与简单挤牌已增加残局分支验证，双挤/连续挤牌仅标记条件结构，复杂挤牌变种尚未全部验证。详见 [docs/validation/status.md](docs/validation/status.md)。每轮实际修改记录在 [agent.md](agent.md)。

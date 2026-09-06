@@ -17,14 +17,16 @@
     "S",
     "H",
     "D",
-    "C"
+    "C",
+    "1",
+    "0"
   ],
   "size": 32,
   "seed": 418,
   "training": "synthetic system fonts only; no supplied screenshots",
-  "train": 20000,
-  "validation": 1600,
-  "validation_accuracy": 0.9293749928474426,
+  "train": 22000,
+  "validation": 2000,
+  "validation_accuracy": 0.9185000061988831,
   "fonts": [
     "arial.ttf",
     "arialbd.ttf",
@@ -46,6 +48,12 @@
     "georgia.ttf",
     "georgiab.ttf",
     "trebuc.ttf",
-    "trebucbd.ttf"
+    "trebucbd.ttf",
+    "Roboto.ttf",
+    "RobotoCondensed.ttf",
+    "Roboto.ttf",
+    "RobotoCondensed.ttf",
+    "Roboto.ttf",
+    "RobotoCondensed.ttf"
   ]
 }

@@ -6,7 +6,7 @@ const browser=await chromium.launch({channel:'chrome',headless:true});
 try{
  const page=await browser.newPage({viewport:{width:1440,height:1050}});
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
- await page.goto('http://127.0.0.1:5173/');
+ await page.goto(process.env.TRICKTRACE_URL||'http://127.0.0.1:5173/');
  const start=page.getByRole('button',{name:'开始',exact:true});
  await start.waitFor();await page.waitForFunction(()=>!document.querySelector('.play-button')?.disabled);
  await page.getByRole('button',{name:'手动输入',exact:false}).click();
