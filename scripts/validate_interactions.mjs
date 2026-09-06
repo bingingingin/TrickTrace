@@ -62,4 +62,3 @@ try{
  const report={passed:true,errors,events,checks:['continuous seat entry','toggle removal','duplicate prevention','board metadata','mobile overflow','single-step start','completed trick retained','automatic progression from fresh session','one-second holds','pause']};
  await fs.writeFile('artifacts/interaction-report.json',JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2));
 }finally{await browser.close();}
-
