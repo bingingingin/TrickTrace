@@ -47,7 +47,7 @@ export function play(p:Position,card:Card,observed=false):Position{
 export const remainingTricks=(p:Position)=>Math.ceil((SEATS.reduce((n,s)=>n+(p.hands[s]?.length??0),0)+p.current.length)/4);
 export function boardFromHands(texts:string[],name='新牌局'):Board{
  const hands=Object.fromEntries(SEATS.map((s,i)=>[s,parseHand(texts[i])])) as Position['hands'];
- return {id:crypto.randomUUID(),name,dealer:'N',vulnerability:'None',auction:[],record:[],warnings:[],position:{hands,contract:{level:3,strain:'NT',declarer:'S',doubled:0},leader:'W',current:[],won:[0,0],history:[]}};
+ return {id:crypto.randomUUID(),name,number:1,dealer:'N',vulnerability:'None',auction:[],record:[],warnings:[],position:{hands,contract:{level:3,strain:'NT',declarer:'S',doubled:0},leader:'W',current:[],won:[0,0],history:[]}};
 }
 export function score(level:number,strain:Strain,doubled:0|1|2,vulnerable:boolean,tricks:number):number{
  const over=tricks-level-6,mult=2**doubled;if(over<0){const down=-over;if(!doubled)return -down*(vulnerable?100:50);const penalty=vulnerable?200+(down-1)*300:100+Math.min(2,down-1)*200+Math.max(0,down-3)*300;return -penalty*(doubled===2?2:1);}

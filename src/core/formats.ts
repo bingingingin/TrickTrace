@@ -1,7 +1,7 @@
 import {SEATS,SUITS,STRAINS,type Board,type Card,type Seat,type Strain,type Position} from './types';
 import {boardFromHands,parseHand,handText,next,deck,validate,side,play,winner} from './cards';
 const vulCycle:Board['vulnerability'][]=['None','NS','EW','All','NS','EW','All','None','EW','All','None','NS','All','None','NS','EW'];
-function defaults(b:Board,num:number){if(num>0){b.dealer=SEATS[(num-1)%4];b.vulnerability=vulCycle[(num-1)%16];}return b;}
+function defaults(b:Board,num:number){if(num>0){b.number=num;b.dealer=SEATS[(num-1)%4];b.vulnerability=vulCycle[(num-1)%16];}return b;}
 function deriveContract(b:Board){
  let last=-1;for(let i=0;i<b.auction.length;i++)if(/^[1-7](?:[SHDC]|NT?)$/.test(b.auction[i]))last=i;
  if(last<0){b.warnings.push('未提供有效定约，请选择定约和庄家后分析');return;}
@@ -20,7 +20,7 @@ export function parseLin(text:string):Board[]{
    // LIN convention explicitly omits the fourth hand; infer only a unique 13-card complement.
    const unknown=SEATS.filter(s=>b!.position.hands[s]===null);if(unknown.length===1){const used=SEATS.flatMap(s=>b!.position.hands[s]??[]);if(used.length===39&&new Set(used).size===39)b.position.hands[unknown[0]]=deck().filter(c=>!used.includes(c));}
    boards.push(b);
-  }else if(b){if(key==='ah')b.name=v;else if(key==='sv')b.vulnerability=({o:'None','0':'None',n:'NS',e:'EW',b:'All'} as Record<string,Board['vulnerability']>)[v]??'None';else if(key==='mb')b.auction.push(cleanCall(v));else if(key==='pc'){const c=v.toUpperCase().replace('10','T');if(!/^[SHDC][2-9TJQKA]$/.test(c))throw Error('LIN 出牌无效：'+v);b.record.push(c as Card);}else if(key==='mc')b.warnings.push(`原记录声称 ${v} 墩；声称不会当作已验证路线`);}
+  }else if(b){if(key==='ah'){b.name=v;const n=Number(v.match(/\d+/)?.[0]);if(n>0)b.number=n;}else if(key==='sv')b.vulnerability=({o:'None','0':'None',n:'NS',e:'EW',b:'All'} as Record<string,Board['vulnerability']>)[v]??'None';else if(key==='mb')b.auction.push(cleanCall(v));else if(key==='pc'){const c=v.toUpperCase().replace('10','T');if(!/^[SHDC][2-9TJQKA]$/.test(c))throw Error('LIN 出牌无效：'+v);b.record.push(c as Card);}else if(key==='mc')b.warnings.push(`原记录声称 ${v} 墩；声称不会当作已验证路线`);}
  }
  for(const x of boards){deriveContract(x);const errors=validate(x.position,false);if(errors.length)throw Error(x.name+'：'+errors.join('；'));}if(!boards.length)throw Error('没有找到 LIN md 手牌字段');return boards;
 }
@@ -55,4 +55,4 @@ export function parseDlm(text:string):Board[]{
  if(!boards.length)throw Error('没有找到有效 DLM Board 编码（26 个 a–p 字符和 3 位校验和）');return boards;
 }
 export function importBoards(text:string,filename=''):Board[]{const s=text.trim();if(filename.endsWith('.json')||s.startsWith('{')){const x=JSON.parse(s);if(x.version!==1||!Array.isArray(x.boards))throw Error('不支持的项目文件');for(const b of x.boards){const e=validate(b.position,false);if(e.length)throw Error(e.join('；'));}return x.boards;}if(/md\|/i.test(s))return parseLin(s);if(/\[Deal\s/i.test(s))return parsePbn(s);if(/Board\s+\d+\s*=/i.test(s))return parseDlm(s);throw Error('无法识别文件，请使用 PBN、DLM、LIN 或墩迹 JSON');}
-export function exportPbn(boards:Board[]):string{return '% PBN 2.1\n'+boards.map(b=>{const p=b.position;if(SEATS.some(s=>p.hands[s]===null)||p.current.length||p.history.length)throw Error('残局与未知手牌请导出项目 JSON；PBN 导出使用完整初始牌局');return `[Event "TrickTrace"]\n[Board "${b.name.replace(/[^0-9]/g,'')||1}"]\n[Dealer "${b.dealer}"]\n[Vulnerable "${b.vulnerability}"]\n[Deal "N:${SEATS.map(s=>handText(p.hands[s]).replace(/-/g,'')).join(' ')}"]\n[Declarer "${p.contract.declarer}"]\n[Contract "${p.contract.level}${p.contract.strain}${'X'.repeat(p.contract.doubled)}"]\n[Result "?"]\n${b.auction.length?`[Auction "${b.dealer}"]\n${b.auction.join(' ')}\n`:''}`;}).join('\n');}
+export function exportPbn(boards:Board[]):string{return '% PBN 2.1\n'+boards.map(b=>{const p=b.position;if(SEATS.some(s=>p.hands[s]===null)||p.current.length||p.history.length)throw Error('残局与未知手牌请导出项目 JSON；PBN 导出使用完整初始牌局');return `[Event "TrickTrace"]\n[Board "${b.number??1}"]\n[Dealer "${b.dealer}"]\n[Vulnerable "${b.vulnerability}"]\n[Deal "N:${SEATS.map(s=>handText(p.hands[s]).replace(/-/g,'')).join(' ')}"]\n[Declarer "${p.contract.declarer}"]\n[Contract "${p.contract.level}${p.contract.strain}${'X'.repeat(p.contract.doubled)}"]\n[Result "?"]\n${b.auction.length?`[Auction "${b.dealer}"]\n${b.auction.join(' ')}\n`:''}`;}).join('\n');}
