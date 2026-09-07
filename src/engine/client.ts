@@ -1,3 +1,4 @@
+import {cancelLeadPool,computeOpeningLead} from './lead-pool';
 let worker: Worker | undefined;
 let seq = 0;
 const pending = new Map<
@@ -29,6 +30,7 @@ function ensure() {
   return worker;
 }
 export function cancelAll(message = "计算已取消", terminateIdle = false) {
+  cancelLeadPool(message);
   if (pending.size || terminateIdle) {
     worker?.terminate();
     worker = undefined;
@@ -45,6 +47,7 @@ export function compute<T>(
   progress?: (n: number) => void,
   timeout = 180000,
 ): Promise<T> {
+  if(method==='openingLead')return computeOpeningLead(args,progress,timeout) as Promise<T>;
   const w = ensure(),
     id = ++seq;
   return new Promise((resolve, reject) => {

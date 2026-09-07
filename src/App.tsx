@@ -155,7 +155,9 @@ export default function App() {
     [paste, setPaste] = useState(false),
     [pasteText, setPasteText] = useState(""),
     [sample, setSample] = useState<SampleResult | null>(null),
-    [leadSample, setLeadSample] = useState<SampleResult | null>(null),
+    [leadSample, setLeadSample] = useState<import('./engine/lead-pool').LeadResult | null>(null),
+    [leadMode, setLeadMode] = useState<'beat'|'exact'>('beat'),
+    [leadInputValid, setLeadInputValid] = useState(true),
     [leadCount, setLeadCount] = useState(1000),
     [leadConstraints, setLeadConstraints] = useState<Constraint[]>([]),
     [singleDummyEnabled, setSingleDummyEnabled] = useState(false),
@@ -1444,7 +1446,14 @@ export default function App() {
                       </label>
                     </div>
                   </div>
-                  <fieldset disabled={!!busy} className="lead-config"><LeadConstraints key={board.singleDummySourceId??board.id} leader={position.leader} declarer={position.contract.declarer} dealer={board.dealer} auction={board.auction} value={leadConstraints} onChange={cs=>{setLeadConstraints(cs);setLeadSample(null);}} /></fieldset>
+                  <fieldset disabled={!!busy} className="lead-config"><LeadConstraints key={board.singleDummySourceId??board.id} leader={position.leader} declarer={position.contract.declarer} dealer={board.dealer} auction={board.auction} value={leadConstraints} onValidityChange={setLeadInputValid} onChange={cs=>{setLeadConstraints(cs);setLeadSample(null);}} /></fieldset>
+                  <label>求解模式
+                    <select aria-label="首攻求解模式" disabled={!!busy} value={leadMode} onChange={e=>{setLeadMode(e.target.value as 'beat'|'exact');setLeadSample(null);}}>
+                      <option value="beat">快速 · 仅击败率</option>
+                      <option value="exact">精确 · 击败率与平均墩数</option>
+                    </select>
+                  </label>
+                  <p className="hint">{leadMode==='beat'?'只判断各首攻能否击败定约，不计算平均墩数。':'计算各首攻的精确墩数，耗时较长。'} 按设备能力并行计算。</p>
                   <div className="lead-readiness">
                     <span>首攻方</span>
                     <b>{LABEL[position.leader]}家</b>
@@ -1492,9 +1501,10 @@ export default function App() {
                       <label>
                         排序目标
                         <select
-                          value={objective}
+                          disabled={!!busy||leadMode==='beat'}
+                          value={leadMode==='beat'?'contract':objective}
                           onChange={(e) =>
-                            setObjective(e.target.value as typeof objective)
+                            {setObjective(e.target.value as typeof objective);setLeadSample(null);}
                           }
                         >
                           <option value="contract">击败定约概率优先</option>
@@ -1503,7 +1513,7 @@ export default function App() {
                       </label>
                       <button
                         className="primary"
-                        disabled={!!busy}
+                        disabled={!!busy||!leadInputValid}
                         onClick={() => {
                           try {
                             const cs = leadConstraints;
@@ -1517,6 +1527,7 @@ export default function App() {
                                 sampleSeed,
                                 cs,
                                 objective,
+                                leadMode,
                               ],
                               setLeadSample,
                             );
@@ -1533,7 +1544,7 @@ export default function App() {
                     <div className="lead-ranking">
                       <div className="lead-ranking-head">
                         <span>{leadSample.samples} 个有效分布 / 目标 {leadCount} · 尝试 {leadSample.attempts} 次{leadSample.samples<leadCount?' · 未达到目标，约束接受率较低':''}</span>
-                        <small>种子 {leadSample.seed}</small>
+                        <small>种子 {leadSample.seed} · {leadSample.workers} 个线程 · 采样 {(leadSample.samplingMs/1000).toFixed(1)} 秒 / 求解 {(leadSample.solveMs/1000).toFixed(1)} 秒</small>
                       </div>
                       {leadSample.moves.map((move, index) => (
                         <div
@@ -1560,8 +1571,8 @@ export default function App() {
                             </small>
                           </span>
                           <span>
-                            {move.expected.toFixed(2)}
-                            <small>庄家平均墩数</small>
+                            {move.expected===null?'—':move.expected.toFixed(2)}
+                            <small>{move.expected===null?'快速模式不计算墩数':'庄家平均墩数'}</small>
                           </span>
                           {index === 0 && <em>首选</em>}
                         </div>

@@ -23,11 +23,22 @@ try {
   assert.equal(await page.getByLabel("自定义模拟次数").inputValue(), "1000");
   await page.getByLabel('首攻分析叫牌').fill('P P 1NT P 3NT P P P');
   await page.getByRole('button',{name:/用开叫模板填充/}).click();
-  assert.equal(await page.getByLabel('S 大牌点下限').inputValue(),'15');
-  assert.equal(await page.getByLabel('S 大牌点上限').inputValue(),'17');
+  assert.equal(await page.getByLabel('S 大牌点',{exact:true}).inputValue(),'15-17');
+  await page.getByRole('button',{name:'清空叫牌',exact:true}).click();
+  await page.getByRole('button',{name:'不叫',exact:true}).click();
+  await page.getByRole('button',{name:'不叫',exact:true}).click();
+  await page.getByRole('button',{name:'1NT',exact:true}).click();
+  assert.equal(await page.getByLabel('首攻分析叫牌').inputValue(),'P P 1NT');
+  const mode=process.env.LEAD_TEST_MODE||'beat';
+  await page.getByLabel('首攻求解模式').selectOption(mode);
 
   await page.getByRole("button", { name: /创建单明手副本/ }).click();
   assert.equal(await page.locator(".unknown-hand").count(), 3);
+  await page.getByLabel('S 大牌点',{exact:true}).fill('20-10');
+  await page.getByLabel('S 大牌点',{exact:true}).blur();
+  assert.equal(await page.getByRole('button',{name:'开始首攻分析',exact:true}).isDisabled(),true);
+  await page.getByLabel('S 大牌点',{exact:true}).fill('15-17');
+  await page.getByLabel('S 大牌点',{exact:true}).blur();
   const sampleCount=Number(process.env.LEAD_TEST_COUNT||16);
   await page.getByLabel("自定义模拟次数").fill(String(sampleCount));
   const started=Date.now();
@@ -36,6 +47,8 @@ try {
   assert.equal(await page.locator(".lead-ranking .sample-move").count(), 13);
   assert.ok((await page.locator(".lead-ranking-head").innerText()).includes(`${sampleCount} 个有效分布`));
   const elapsedMs=Date.now()-started;
+  const timing=await page.locator('.lead-ranking-head small').innerText();
+  assert.equal(await page.getByText('快速模式不计算墩数',{exact:true}).count(),mode==='beat'?13:0);
   assert.equal(await page.locator(".best-lead em").innerText(), "首选");
 
   await page.setViewportSize({ width: 390, height: 844 });
@@ -74,6 +87,8 @@ try {
     passed: true,
     samples: sampleCount,
     elapsedMs,
+    mode,
+    timing,
     returnToOriginal: true,
     leadCount: 13,
     defaultEnabled: false,

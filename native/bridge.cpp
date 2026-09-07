@@ -15,7 +15,8 @@ extern "C" EMSCRIPTEN_KEEPALIVE const char* tt_solve(const char* input){
  std::istringstream in(input);Deal d{};in>>d.trump>>d.first;
  for(int i=0;i<3;i++)in>>d.currentTrickSuit[i]>>d.currentTrickRank[i];
  for(int h=0;h<4;h++)for(int s=0;s<4;s++)in>>d.remainCards[h][s];
- FutureTricks f{};int code=SolveBoard(context(),d,-1,3,1,&f);
+ int target=-1;in>>target;
+ FutureTricks f{};int code=SolveBoard(context(),d,target,target<0?3:2,1,&f);
  std::ostringstream o;o<<"{\"code\":"<<code<<",\"nodes\":"<<f.nodes<<",\"cards\":[";
  if(code==1)for(int i=0;i<f.cards;i++){if(i)o<<',';o<<'['<<f.suit[i]<<','<<f.rank[i]<<','<<f.equals[i]<<','<<f.score[i]<<']';}
  o<<"]}";output=o.str();return output.c_str();

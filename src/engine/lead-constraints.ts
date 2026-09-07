@@ -46,7 +46,7 @@ export function validateConstraints(cs: Constraint[]) {
 }
 
 // Limited natural opening inference: never infer conventions or later calls silently.
-export function inferOpening(auction: string, dealer: Seat): {constraints: Constraint[]; notes: string[]} {
+export function auctionCalls(auction: string, dealer: Seat):string[] {
   const calls=auction.toUpperCase().replace(/PASS/g,'P').replace(/♠/g,'S').replace(/♥/g,'H').replace(/♦/g,'D').replace(/♣/g,'C').split(/[\s,，]+/).filter(Boolean);
   if(!calls.length)throw Error('请先输入叫牌');
   if(calls.some(c=>! /^(P|X|XX|[1-7](S|H|D|C|NT))$/.test(c)))throw Error('叫牌使用 P、X、XX、1C … 7NT，以空格分隔');
@@ -63,6 +63,10 @@ export function inferOpening(auction: string, dealer: Seat): {constraints: Const
     const level=(Number(call[0])-1)*5+['C','D','H','S','NT'].indexOf(call.slice(1));
     if(level<=highest)throw Error('定约叫品必须高于此前叫品');highest=level;bidder=who;doubled=0;
   });
+  return calls;
+}
+export function inferOpening(auction: string, dealer: Seat): {constraints: Constraint[]; notes: string[]} {
+  const calls=auctionCalls(auction,dealer);
   const index=calls.findIndex(c=>c!=='P');if(index<0)return{constraints:[],notes:['全为不叫，未推断点力。']};
   const call=calls[index],seat=SEATS[(SEATS.indexOf(dealer)+index)%4];
   const c:Constraint={seat};
