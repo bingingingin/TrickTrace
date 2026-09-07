@@ -21,8 +21,24 @@ try {
   const choices = page.locator(".count-options > button");
   assert.deepEqual(await choices.allTextContents(), ["250", "1000", "2500", "5000"]);
   assert.equal(await page.getByLabel("自定义模拟次数").inputValue(), "1000");
+  assert.equal(await page.getByRole('button',{name:/用开叫模板填充/}).count(),0);
+  await page.getByLabel('首攻分析叫牌').fill('1NT P 2D P 2H');
+  await page.waitForFunction(()=>document.querySelector('input[aria-label="S ♥ 张数"]')?.value==='5+');
+  assert.equal(await page.getByLabel('S ♦ 张数',{exact:true}).inputValue(),'');
+  await page.getByLabel('S ♥ 张数',{exact:true}).fill('6+');
+  await page.getByLabel('S ♥ 张数',{exact:true}).blur();
+  await page.getByLabel('首攻分析叫牌').fill('1NT P 2H P 2S');
+  await page.waitForFunction(()=>document.querySelector('input[aria-label="S ♠ 张数"]')?.value==='5+');
+  assert.equal(await page.getByLabel('S ♥ 张数',{exact:true}).inputValue(),'6+');
+  await page.getByRole('button',{name:'恢复南家推断',exact:true}).click();
+  await page.waitForFunction(()=>document.querySelector('input[aria-label="S ♥ 张数"]')?.value==='');
+  await page.getByRole('button',{name:'撤销',exact:true}).click();
+  await page.getByRole('button',{name:'撤销',exact:true}).click();
+  await page.getByRole('button',{name:'撤销',exact:true}).click();
+  await page.waitForFunction(()=>document.querySelector('input[aria-label="S ♠ 张数"]')?.value==='');
+  await page.getByLabel('首攻分析叫牌').fill('1S P 1H');
+  await page.waitForFunction(()=>[...document.querySelectorAll('button')].find(b=>b.textContent==='开始首攻分析')?.disabled);
   await page.getByLabel('首攻分析叫牌').fill('P P 1NT P 3NT P P P');
-  await page.getByRole('button',{name:/用开叫模板填充/}).click();
   await page.waitForFunction(()=>document.querySelector('input[aria-label="S 大牌点"]')?.value==='15-17');
   await page.getByRole('button',{name:'清空叫牌',exact:true}).click();
   await page.getByRole('button',{name:'不叫',exact:true}).click();
@@ -126,6 +142,7 @@ try {
     timing,
     returnToOriginal: true,
     noVisibleCopy: true,
+    ccbaAutoLink: true,
     deleteAndClear: true,
     leadCount: 13,
     defaultEnabled: false,

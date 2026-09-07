@@ -46,8 +46,11 @@ export function validateConstraints(cs: Constraint[]) {
 }
 
 // Limited natural opening inference: never infer conventions or later calls silently.
+export function normalizeAuction(auction:string):string[]{
+ return auction.toUpperCase().replace(/再加倍/g,'XX').replace(/加倍/g,'X').replace(/不叫|派司|PASS/g,'P').replace(/♠/g,'S').replace(/♥/g,'H').replace(/♦/g,'D').replace(/♣/g,'C').replace(/([1-7])N\b/g,'$1NT').split(/[\s,，;；]+/).filter(Boolean);
+}
 export function auctionCalls(auction: string, dealer: Seat):string[] {
-  const calls=auction.toUpperCase().replace(/PASS/g,'P').replace(/♠/g,'S').replace(/♥/g,'H').replace(/♦/g,'D').replace(/♣/g,'C').split(/[\s,，]+/).filter(Boolean);
+  const calls=normalizeAuction(auction);
   if(!calls.length)throw Error('请先输入叫牌');
   if(calls.some(c=>! /^(P|X|XX|[1-7](S|H|D|C|NT))$/.test(c)))throw Error('叫牌使用 P、X、XX、1C … 7NT，以空格分隔');
   let highest=-1,bidder=-1,doubled=0,passes=0,ended=false;

@@ -185,7 +185,7 @@ export default function App() {
     full && !errors.length && remainingTricks(position)
       ? legalCards(position)
       : [];
-  useEffect(()=>{setLeadConstraints([]);setLeadSample(null);},[board.id]);
+  useEffect(()=>{setLeadSample(null);},[board.id]);
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE, JSON.stringify(store));
@@ -1429,7 +1429,7 @@ export default function App() {
                       </label>
                     </div>
                   </div>
-                  <fieldset disabled={!!busy} className="lead-config"><LeadConstraints key={board.id} leader={board.position.leader} declarer={board.position.contract.declarer} dealer={board.dealer} auction={board.auction} value={leadConstraints} onValidityChange={setLeadInputValid} onChange={cs=>{setLeadConstraints(cs);setLeadSample(null);}} /></fieldset>
+                  <fieldset disabled={!!busy} className="lead-config"><LeadConstraints key={board.id} leader={board.position.leader} declarer={board.position.contract.declarer} dealer={board.dealer} auction={board.auction} onValidityChange={setLeadInputValid} onChange={cs=>{setLeadConstraints(cs);setLeadSample(null);}} /></fieldset>
                   <label>求解模式
                     <select aria-label="首攻求解模式" disabled={!!busy} value={leadMode} onChange={e=>{setLeadMode(e.target.value as 'beat'|'exact');setLeadSample(null);}}>
                       <option value="beat">快速 · 仅击败率</option>
