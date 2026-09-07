@@ -1,6 +1,6 @@
 {
   "name": "tricktrace", "private": true, "version": "0.1.0", "type": "module",
-  "scripts": {"dev":"vite --host 127.0.0.1", "build":"tsc -b && vite build", "preview":"vite preview --host 127.0.0.1", "test":"vitest run", "test:ocr":"node scripts/validate_ocr.mjs && node scripts/report_ocr.mjs", "build:dds":"python scripts/build_dds.py", "test:browser":"playwright test"},
+  "scripts": {"dev":"vite --host 127.0.0.1", "build":"tsc -b && vite build", "preview":"vite preview --host 127.0.0.1", "test":"vitest run", "test:ocr":"node scripts/validate_ocr.mjs && node scripts/report_ocr.mjs", "test:lead":"node scripts/validate_opening_lead.mjs", "build:dds":"python scripts/build_dds.py", "test:browser":"playwright test"},
   "dependencies": {"react":"^19.1.0", "react-dom":"^19.1.0", "lucide-react":"^0.468.0", "onnxruntime-web":"^1.22.0", "tesseract.js":"^6.0.1"},
   "devDependencies": {"@types/react":"^19.1.0", "@types/react-dom":"^19.1.0", "@types/node":"^22.0.0", "@vitejs/plugin-react":"^4.5.0", "typescript":"~5.8.3", "vite":"^6.3.5", "vitest":"^3.2.0", "@playwright/test":"^1.55.0"}
 }

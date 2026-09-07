@@ -2,7 +2,7 @@ import {describe,it,expect} from 'vitest';
 import {boardFromHands,validate,play,legalCards,turn,score,handText} from '../src/core/cards';
 import {parseDlm,parseLin,parsePbn,exportPbn} from '../src/core/formats';
 import {demoBoard} from '../src/core/demo';
-import {sampleDeals} from '../src/engine/sampling';
+import {analyseOpeningLeads,sampleDeals} from '../src/engine/sampling';
 describe('bridge rules',()=>{
  it('enforces following suit and awards a trumped trick',()=>{const b=boardFromHands(['A.2.-.-','K.A.-.-','Q.K.-.-','J.Q.-.-']);b.position.leader='N';b.position.contract.strain='H';let p=play(b.position,'SA');expect(legalCards(p)).toEqual(['SK']);expect(()=>play(p,'HA')).toThrow();p=play(play(play(p,'SK'),'SQ'),'SJ');expect(p.won).toEqual([1,0]);expect(turn(p)).toBe('N');});
  it('distinguishes unknown hands from voids and rejects duplicates',()=>{expect(boardFromHands(['?','-.-.-.-','?','?']).position.hands.E).toEqual([]);const p=demoBoard().position;p.hands.N!.push('SA');expect(validate(p).join()).toContain('重复');});
@@ -17,4 +17,6 @@ describe('formats',()=>{
 describe('unknown information',()=>{
  it('samples reproducibly, preserving known cards',()=>{const p=demoBoard().position;p.hands.E=null;p.hands.W=null;const a=sampleDeals(p,20,42,[]),b=sampleDeals(p,20,42,[]);expect(a).toEqual(b);expect(new Set(a.samples.map(x=>handText(x.hands.E))).size).toBeGreaterThan(15);for(const x of a.samples){expect(validate(x)).toEqual([]);expect(x.hands.N).toEqual(p.hands.N);}});
  it('rejects incomplete historical information instead of inventing a pool',()=>{const p=boardFromHands(['A.-.-.-','?','K.-.-.-','?']).position;expect(()=>sampleDeals(p,20,42,[])).toThrow('此前');});
+ it('samples three hidden hands for single-dummy opening-lead analysis',()=>{const p=demoBoard().position;for(const s of ['N','E','S'] as const)p.hands[s]=null;const r=sampleDeals(p,20,42,[],undefined,1);expect(r.samples).toHaveLength(20);for(const q of r.samples){expect(q.hands.W).toEqual(p.hands.W);expect(validate(q)).toEqual([]);}});
+ it('ranks opening leads by defeat rate without exposing hidden hands',()=>{const p=demoBoard().position;for(const s of ['N','E','S'] as const)p.hands[s]=null;const first=legalCards(p)[0];const solver={solvePosition:(q:typeof p)=>({moves:legalCards(q).map(card=>({card,tricks:card===first?11:12,loss:0,optimal:true})),tricks:11,nodes:0})};const r=analyseOpeningLeads(solver as never,p,16,7,[],'contract');expect(r.moves[0].card).toBe(first);expect(r.moves[0].success).toBe(1);expect(r.moves.slice(1).every(m=>m.success===0)).toBe(true);});
 });

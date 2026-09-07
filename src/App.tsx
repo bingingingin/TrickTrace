@@ -23,6 +23,7 @@ import {
   Focus,
   Copy,
   ArrowRight,
+  Trash2,
 } from "lucide-react";
 import {
   SEATS,
@@ -66,6 +67,7 @@ import ImageReview from "./components/ImageReview";
 import { chooseOptimal } from "./engine/line-policy";
 import { getTable, tableKey, canCalculateTable } from "./engine/table-client";
 import { boardMetadata, nextBoardNumber } from "./core/board-number";
+import { classifyPlay, PLAY_KNOWLEDGE } from "./core/play-knowledge";
 
 type Branch = {
   id: string;
@@ -141,7 +143,9 @@ export default function App() {
   const [busy, setBusy] = useState(""),
     [progress, setProgress] = useState(0),
     [error, setError] = useState(""),
-    [tab, setTab] = useState<"moves" | "table" | "experiment">("moves"),
+    [tab, setTab] = useState<"moves" | "table" | "experiment" | "lead">(
+      "moves",
+    ),
     [rot, setRot] = useState(0),
     [auto, setAuto] = useState(false),
     [autoMode, setAutoMode] = useState(false),
@@ -149,6 +153,8 @@ export default function App() {
     [paste, setPaste] = useState(false),
     [pasteText, setPasteText] = useState(""),
     [sample, setSample] = useState<SampleResult | null>(null),
+    [leadSample, setLeadSample] = useState<SampleResult | null>(null),
+    [singleDummyEnabled, setSingleDummyEnabled] = useState(false),
     [sampleCount, setSampleCount] = useState(128),
     [sampleSeed, setSampleSeed] = useState(20260905),
     [objective, setObjective] = useState<"contract" | "tricks">("contract"),
@@ -185,6 +191,7 @@ export default function App() {
     cancelAll();
     setLineResult(null);
     setSample(null);
+    setLeadSample(null);
     setReview(null);
     setEvaluation(null);
     setBusy("");
@@ -239,7 +246,7 @@ export default function App() {
         method,
         args,
         setProgress,
-        method === "sample" ? 300000 : 180000,
+        method === "sample" || method === "openingLead" ? 300000 : 180000,
       );
       if (id === gen.current) apply(r);
     } catch (e) {
@@ -258,6 +265,31 @@ export default function App() {
         ),
       },
     }));
+  }
+  function prepareSingleDummyCopy() {
+    const source = board.position;
+    if (
+      source.current.length ||
+      source.history.length ||
+      source.won[0] + source.won[1] ||
+      source.hands[source.leader]?.length !== 13
+    ) {
+      setError("需要一副未出牌且首攻方手牌完整的牌局");
+      return;
+    }
+    const copy = structuredClone(board);
+    copy.id = crypto.randomUUID();
+    copy.name = `${board.name} · 单明手`;
+    copy.record = [];
+    SEATS.forEach((seat) => {
+      if (seat !== copy.position.leader) copy.position.hands[seat] = null;
+    });
+    setStore((old) => ({
+      ...old,
+      boards: [...old.boards, copy],
+      selected: old.boards.length,
+    }));
+    setTab("lead");
   }
   function playCard(card: Card, obs = false) {
     try {
@@ -361,6 +393,26 @@ export default function App() {
       selected: old.boards.length,
     }));
     setPaste(false);
+  }
+  function deleteBoard(index: number) {
+    setAuto(false);
+    setStore((old) => {
+      const removed = old.boards[index],
+        boards = old.boards.filter((_, i) => i !== index),
+        sessions = { ...old.sessions };
+      delete sessions[removed.id];
+      if (!boards.length) {
+        const blank = boardFromHands(["?", "?", "?", "?"]);
+        Object.assign(blank, boardMetadata(1));
+        blank.name = "新牌局 1";
+        return { ...old, boards: [blank], selected: 0, sessions };
+      }
+      const selected =
+        old.selected > index
+          ? old.selected - 1
+          : Math.min(old.selected, boards.length - 1);
+      return { ...old, boards, selected, sessions };
+    });
   }
   async function fileInput(file: File) {
     setError("");
@@ -645,27 +697,59 @@ export default function App() {
               <Copy size={15} /> 粘贴牌谱
             </button>
           </div>
+          <button
+            className={`sidebar-feature ${singleDummyEnabled ? "enabled" : ""}`}
+            role="switch"
+            aria-checked={singleDummyEnabled}
+            onClick={() => {
+              const enabled = !singleDummyEnabled;
+              setSingleDummyEnabled(enabled);
+              setTab(enabled ? "lead" : tab === "lead" ? "moves" : tab);
+            }}
+          >
+            <span className="feature-icon">
+              <Focus size={18} />
+            </span>
+            <span>
+              <strong>单明手最佳首攻</strong>
+              <small>
+                {singleDummyEnabled
+                  ? "已开启 · 点击关闭"
+                  : "可选分析 · 默认关闭"}
+              </small>
+            </span>
+            <i aria-hidden="true" />
+          </button>
           <div className="board-list">
             {store.boards.map((b, i) => (
-              <button
-                key={b.id}
-                className={`board-item ${store.selected === i ? "selected" : ""}`}
-                onClick={() => setStore((old) => ({ ...old, selected: i }))}
-              >
-                <span className="board-number">
-                  {String(b.number ?? i + 1).padStart(2, "0")}
-                </span>
-                <span>
-                  <strong>{b.name}</strong>
-                  <small>
-                    {contractText(b.position)} ·{" "}
-                    {b.vulnerability === "None"
-                      ? "双方无局"
-                      : b.vulnerability + " 有局"}
-                  </small>
-                </span>
-                {store.selected === i && <ArrowRight size={16} />}
-              </button>
+              <div className="board-item-row" key={b.id}>
+                <button
+                  className={`board-item ${store.selected === i ? "selected" : ""}`}
+                  onClick={() => setStore((old) => ({ ...old, selected: i }))}
+                >
+                  <span className="board-number">
+                    {String(b.number ?? i + 1).padStart(2, "0")}
+                  </span>
+                  <span>
+                    <strong>{b.name}</strong>
+                    <small>
+                      {contractText(b.position)} ·{" "}
+                      {b.vulnerability === "None"
+                        ? "双方无局"
+                        : b.vulnerability + " 有局"}
+                    </small>
+                  </span>
+                  {store.selected === i && <ArrowRight size={16} />}
+                </button>
+                <button
+                  className="delete-board"
+                  aria-label={`删除 ${b.name}`}
+                  title={`删除 ${b.name}`}
+                  onClick={() => deleteBoard(i)}
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
             ))}
           </div>
           <div className="sidebar-bottom">
@@ -968,6 +1052,14 @@ export default function App() {
                 >
                   两家牌
                 </button>
+                {singleDummyEnabled && (
+                  <button
+                    className={tab === "lead" ? "active" : ""}
+                    onClick={() => setTab("lead")}
+                  >
+                    首攻
+                  </button>
+                )}
               </div>
               {busy && (
                 <div className="computing" role="status">
@@ -1024,7 +1116,10 @@ export default function App() {
                     )}
                   </div>
                   <div className="moves-heading">
-                    <strong>{LABEL[currentSeat]}家可选出牌</strong>
+                    <strong>
+                      {LABEL[currentSeat]}家可选出牌 ·{" "}
+                      {PLAY_KNOWLEDGE[classifyPlay(position)].label}
+                    </strong>
                     <span>庄家最终墩数</span>
                   </div>
                   <div className="move-list">
@@ -1043,7 +1138,8 @@ export default function App() {
                           {fmt(m.card)}
                         </span>
                         <small>
-                          {m.optimal ? "最优选择" : `损失 ${m.loss} 墩`}
+                          {PLAY_KNOWLEDGE[classifyPlay(position, m.card)].label}{" "}
+                          · {m.optimal ? "最优选择" : `损失 ${m.loss} 墩`}
                         </small>
                         <b>{m.tricks}</b>
                         {m.optimal ? <Check size={14} /> : <span />}
@@ -1058,6 +1154,19 @@ export default function App() {
                   <p className="result-note">
                     绿色标记表示当前行动方的最优牌。多张牌可以同样最优；每出一张，重新评估。
                   </p>
+                  <details className="play-knowledge">
+                    <summary>基本出牌库</summary>
+                    {Object.values(PLAY_KNOWLEDGE).map((item) => (
+                      <p key={item.label}>
+                        <strong>{item.label}</strong>
+                        <span>{item.short}</span>
+                        <small>{item.principle}</small>
+                      </p>
+                    ))}
+                    <footer>
+                      规则只解释出牌角色；具体选择仍须通过 DDS，不覆盖会损失墩数的结果。
+                    </footer>
+                  </details>
                   {board.record.length > 0 && (
                     <button
                       className="light-button"
@@ -1273,6 +1382,194 @@ export default function App() {
                   )}
                 </div>
               )}
+              {tab === "lead" && singleDummyEnabled && (
+                <div className="experiment lead-analysis">
+                  <span className="experiment-label">SINGLE DUMMY</span>
+                  <h3>只看首攻手，比较每一张牌</h3>
+                  <p>
+                    固定{LABEL[position.leader]}家 13 张手牌，对其余 39
+                    张按约束重复发牌，每个分布均由 DDS 评估。
+                  </p>
+                  <div className="simulation-count">
+                    <div>
+                      <strong>模拟次数</strong>
+                      <small>次数越多越稳定，耗时也更长</small>
+                    </div>
+                    <div className="count-options">
+                      {[32, 64, 128, 256].map((count) => (
+                        <button
+                          key={count}
+                          aria-pressed={sampleCount === count}
+                          onClick={() => setSampleCount(count)}
+                        >
+                          {count}
+                        </button>
+                      ))}
+                      <label>
+                        <span>自定义</span>
+                        <input
+                          aria-label="自定义模拟次数"
+                          type="number"
+                          min="16"
+                          max="2000"
+                          value={sampleCount}
+                          onChange={(e) =>
+                            setSampleCount(Number(e.target.value))
+                          }
+                        />
+                      </label>
+                    </div>
+                  </div>
+                  <div className="lead-readiness">
+                    <span>首攻方</span>
+                    <b>{LABEL[position.leader]}家</b>
+                    <span>已知手牌</span>
+                    <b>
+                      {SEATS.filter((seat) => position.hands[seat] !== null).length}{" "}
+                      家
+                    </b>
+                  </div>
+                  {SEATS.filter((seat) => position.hands[seat] !== null).length !==
+                    1 || position.hands[position.leader]?.length !== 13 ? (
+                    <div className="lead-setup">
+                      <p>
+                        分析需要只保留首攻方手牌，其余三家设为 ?。
+                      </p>
+                      {full && (
+                        <button
+                          className="light-button"
+                          onClick={prepareSingleDummyCopy}
+                        >
+                          <Copy size={14} /> 创建单明手副本
+                        </button>
+                      )}
+                      <button
+                        className="light-button"
+                        onClick={() => setEditing(structuredClone(board))}
+                      >
+                        <Settings2 size={14} /> 编辑当前牌局
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="sample-fields">
+                        <label>
+                          随机种子
+                          <input
+                            type="number"
+                            value={sampleSeed}
+                            onChange={(e) =>
+                              setSampleSeed(Number(e.target.value))
+                            }
+                          />
+                        </label>
+                      </div>
+                      <label>
+                        排序目标
+                        <select
+                          value={objective}
+                          onChange={(e) =>
+                            setObjective(e.target.value as typeof objective)
+                          }
+                        >
+                          <option value="contract">击败定约概率优先</option>
+                          <option value="tricks">庄家平均墩数最少</option>
+                        </select>
+                      </label>
+                      <details>
+                        <summary>叫牌推断约束</summary>
+                        <p>
+                          例如限制庄家大牌点和黑桃长度：
+                          <code>
+                            {JSON.stringify([
+                              {
+                                seat: position.contract.declarer,
+                                minHcp: 15,
+                                maxHcp: 17,
+                                lengths: { S: [2, 5] },
+                              },
+                            ])}
+                          </code>
+                        </p>
+                        <textarea
+                          value={constraints}
+                          onChange={(e) => setConstraints(e.target.value)}
+                        />
+                      </details>
+                      <button
+                        className="primary"
+                        disabled={!!busy}
+                        onClick={() => {
+                          try {
+                            const cs = JSON.parse(constraints) as Constraint[];
+                            if (!Array.isArray(cs))
+                              throw Error("约束必须为数组");
+                            void task(
+                              "正在比较所有首攻",
+                              "openingLead",
+                              [
+                                position,
+                                sampleCount,
+                                sampleSeed,
+                                cs,
+                                objective,
+                              ],
+                              setLeadSample,
+                            );
+                          } catch (e) {
+                            setError((e as Error).message);
+                          }
+                        }}
+                      >
+                        开始首攻分析
+                      </button>
+                    </>
+                  )}
+                  {leadSample && (
+                    <div className="lead-ranking">
+                      <div className="lead-ranking-head">
+                        <span>{leadSample.samples} 个有效分布</span>
+                        <small>种子 {leadSample.seed}</small>
+                      </div>
+                      {leadSample.moves.map((move, index) => (
+                        <div
+                          className={
+                            index === 0
+                              ? "sample-move best-lead"
+                              : "sample-move"
+                          }
+                          key={move.card}
+                        >
+                          <b
+                            className={
+                              ["H", "D"].includes(suit(move.card)) ? "red" : ""
+                            }
+                          >
+                            {fmt(move.card)}
+                          </b>
+                          <span>
+                            {(move.success * 100).toFixed(1)}%
+                            <small>
+                              击败定约 · 95% 区间{" "}
+                              {(move.interval[0] * 100).toFixed(0)}–
+                              {(move.interval[1] * 100).toFixed(0)}%
+                            </small>
+                          </span>
+                          <span>
+                            {move.expected.toFixed(2)}
+                            <small>庄家平均墩数</small>
+                          </span>
+                          {index === 0 && <em>首选</em>}
+                        </div>
+                      ))}
+                      <p className="hint">
+                        区间只表示有限采样的不确定性；DDS
+                        在首攻后按四明手最优打法求解。
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
             </aside>
           </div>
           {review && (
@@ -1363,9 +1660,16 @@ export default function App() {
                         )}
                       </span>
                       <div className="line-cards">
-                        {t.cards.map((c) => (
+                        {t.cards.map((c, cardIndex) => (
                           <span key={c.seat}>
-                            <small>{c.seat}</small>
+                            <small>
+                              {c.seat} ·{" "}
+                              {cardIndex
+                                ? "跟牌"
+                                : i === 0 && position.history.length === 0
+                                  ? "首攻"
+                                  : "攻牌"}
+                            </small>
                             <b
                               className={
                                 ["H", "D"].includes(suit(c.card)) ? "red" : ""
