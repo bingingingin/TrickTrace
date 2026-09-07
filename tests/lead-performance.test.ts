@@ -1,13 +1,21 @@
 import {it,expect,beforeAll} from 'vitest';
 import {readFileSync} from 'node:fs';
 import {createSolver,type Solver} from '../src/engine/dds';
-import {sampleDeals,randomSource} from '../src/engine/sampling';
+import {sampleDeals,randomSource,openingLeadPosition} from '../src/engine/sampling';
 import {constrainedDealer} from '../src/engine/constrained-dealer';
 import {solveLeadBatch} from '../src/engine/lead-batch';
 import {mergeLeadBatches} from '../src/engine/lead-pool';
 import {boardFromHands,next} from '../src/core/cards';
 import {SEATS,STRAINS,type Card} from '../src/core/types';
 let solver:Solver;
+it('builds private lead input without changing the board or leaking other hands',()=>{
+ const text=readFileSync('vendor/dds/hands/list10.txt','utf8');const m=/PBN[^\n]*"N:([^"\n]+)"/.exec(text)!;
+ const source=boardFromHands(m[1].split(/\s+/)).position,before=structuredClone(source),p=openingLeadPosition(source);
+ expect(source).toEqual(before);expect(p.hands[p.leader]).toEqual(source.hands[source.leader]);
+ for(const s of SEATS)if(s!==p.leader)expect(p.hands[s]).toBeNull();
+ const different=structuredClone(source);for(const s of SEATS)if(s!==different.leader)different.hands[s]=null;
+ expect(openingLeadPosition(different)).toEqual(p);
+});
 beforeAll(async()=>{const {default:create}=await import(/* @vite-ignore */new URL('../public/dds/dds.mjs',import.meta.url).href);solver=createSolver(await create({wasmBinary:readFileSync('public/dds/dds.wasm')}));},60000);
 it('threshold solving matches exact outcomes for every lead across strains, levels and seats',()=>{
  const text=readFileSync('vendor/dds/hands/list10.txt','utf8');const deals=[...text.matchAll(/PBN[^\n]*"N:([^"\n]+)"/g)];

@@ -32,8 +32,9 @@ try {
   const mode=process.env.LEAD_TEST_MODE||'beat';
   await page.getByLabel('首攻求解模式').selectOption(mode);
 
-  await page.getByRole("button", { name: /创建单明手副本/ }).click();
-  assert.equal(await page.locator(".unknown-hand").count(), 3);
+  assert.equal(await page.getByRole("button", { name: /创建单明手副本/ }).count(),0);
+  assert.equal(await page.locator(".unknown-hand").count(), 0);
+  const beforeAnalysis=await page.evaluate(()=>localStorage.getItem('tricktrace.v1'));
   await page.getByLabel('S 大牌点',{exact:true}).fill('20-10');
   await page.getByLabel('S 大牌点',{exact:true}).blur();
   assert.equal(await page.getByRole('button',{name:'开始首攻分析',exact:true}).isDisabled(),true);
@@ -47,6 +48,8 @@ try {
   assert.equal(await page.locator(".lead-ranking .sample-move").count(), 13);
   assert.ok((await page.locator(".lead-ranking-head").innerText()).includes(`${sampleCount} 个有效分布`));
   const elapsedMs=Date.now()-started;
+  assert.equal(await page.evaluate(()=>localStorage.getItem('tricktrace.v1')),beforeAnalysis);
+  assert.equal(await page.locator('.unknown-hand').count(),0);
   const timing=await page.locator('.lead-ranking-head small').innerText();
   assert.equal(await page.getByText('快速模式不计算墩数',{exact:true}).count(),mode==='beat'?13:0);
   assert.equal(await page.locator(".best-lead em").innerText(), "首选");
@@ -82,6 +85,16 @@ try {
   await page.waitForFunction(()=>!document.querySelector('.play-button').disabled);
   await page.getByRole('button',{name:'开始',exact:true}).click();
   await page.waitForFunction(()=>document.querySelector('.playback>span')?.textContent==='1 / 52 张');
+  await page.waitForFunction(()=>!document.querySelector('.play-button').disabled);
+  await feature.click();
+  await page.getByLabel('自定义模拟次数').fill('16');
+  await page.getByRole('button',{name:'开始首攻分析',exact:true}).click();
+  await page.locator('.lead-ranking').waitFor({timeout:300000});
+  await page.getByRole('button',{name:'返回原牌局',exact:true}).click();
+  assert.equal(await page.locator('.playback>span').innerText(),'1 / 52 张');
+  // Two independent fixture boards for deletion coverage; analysis itself created none.
+  await page.evaluate(()=>{const s=JSON.parse(localStorage.getItem('tricktrace.v1'));const b=structuredClone(s.boards[0]);b.id=crypto.randomUUID();b.name='删除测试牌例';s.boards.push(b);localStorage.setItem('tricktrace.v1',JSON.stringify(s));});
+  await page.reload();
   // Destructive controls operate only on this isolated test profile.
   const savedCount=await page.evaluate(()=>JSON.parse(localStorage.getItem('tricktrace.v1')).boards.length);
   const savedStore=await page.evaluate(()=>localStorage.getItem('tricktrace.v1'));
@@ -112,6 +125,7 @@ try {
     mode,
     timing,
     returnToOriginal: true,
+    noVisibleCopy: true,
     deleteAndClear: true,
     leadCount: 13,
     defaultEnabled: false,

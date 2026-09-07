@@ -63,3 +63,9 @@ export function validateOpeningLead(p:Position,amount:number){
  if(known.length!==1||known[0]!==p.leader||p.hands[p.leader]?.length!==13)throw Error('请只保留首攻方的 13 张手牌，其余三家设为 ?');
  if(!Number.isInteger(amount)||amount<16||amount>5000)throw Error('模拟次数需在 16–5000 之间');
 }
+// Strip all non-leader information before dealing; never mutate the stored board.
+export function openingLeadPosition(source:Position):Position{
+ const p=structuredClone(source);
+ for(const seat of SEATS)if(seat!==p.leader)p.hands[seat]=null;
+ return p;
+}

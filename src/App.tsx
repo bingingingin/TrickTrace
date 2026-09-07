@@ -185,7 +185,7 @@ export default function App() {
     full && !errors.length && remainingTricks(position)
       ? legalCards(position)
       : [];
-  useEffect(()=>{setLeadConstraints([]);setLeadSample(null);},[board.singleDummySourceId ?? board.id]);
+  useEffect(()=>{setLeadConstraints([]);setLeadSample(null);},[board.id]);
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE, JSON.stringify(store));
@@ -273,32 +273,6 @@ export default function App() {
       },
     }));
   }
-  function prepareSingleDummyCopy() {
-    const source = board.position;
-    if (
-      source.current.length ||
-      source.history.length ||
-      source.won[0] + source.won[1] ||
-      source.hands[source.leader]?.length !== 13
-    ) {
-      setError("需要一副未出牌且首攻方手牌完整的牌局");
-      return;
-    }
-    const copy = structuredClone(board);
-    copy.id = crypto.randomUUID();
-    copy.singleDummySourceId = board.id;
-    copy.name = `${board.name} · 单明手`;
-    copy.record = [];
-    SEATS.forEach((seat) => {
-      if (seat !== copy.position.leader) copy.position.hands[seat] = null;
-    });
-    setStore((old) => ({
-      ...old,
-      boards: [...old.boards, copy],
-      selected: old.boards.length,
-    }));
-    setTab("lead");
-  }
   function closeSingleDummy() {
     setSingleDummyEnabled(false);
     setTab("moves");
@@ -307,13 +281,6 @@ export default function App() {
     cancelAll();
     setBusy("");
     setLeadSample(null);
-    setStore(old=>{
-      const current=old.boards[old.selected];
-      const original=old.boards.findIndex(candidate=>current.singleDummySourceId
-        ? candidate.id===current.singleDummySourceId
-        : current.name===`${candidate.name} · 单明手` && SEATS.every(s=>candidate.position.hands[s]?.length===13) && JSON.stringify(candidate.position.hands[current.position.leader])===JSON.stringify(current.position.hands[current.position.leader]));
-      return original>=0?{...old,selected:original}:old;
-    });
   }
   function playCard(card: Card, obs = false) {
     try {
@@ -1428,8 +1395,7 @@ export default function App() {
                   </div>
                   <h3>只看首攻手，比较每一张牌</h3>
                   <p>
-                    固定{LABEL[position.leader]}家 13 张手牌，对其余 39
-                    张按约束重复发牌，每个分布均由 DDS 评估。
+                    仅用原始发牌中{LABEL[board.position.leader]}家 13 张手牌，其余三家按约束模拟。临时数据只用于计算，不新增牌例，也不改变牌桌或播放进度。
                   </p>
                   <div className="simulation-count">
                     <div>
@@ -1463,7 +1429,7 @@ export default function App() {
                       </label>
                     </div>
                   </div>
-                  <fieldset disabled={!!busy} className="lead-config"><LeadConstraints key={board.singleDummySourceId??board.id} leader={position.leader} declarer={position.contract.declarer} dealer={board.dealer} auction={board.auction} value={leadConstraints} onValidityChange={setLeadInputValid} onChange={cs=>{setLeadConstraints(cs);setLeadSample(null);}} /></fieldset>
+                  <fieldset disabled={!!busy} className="lead-config"><LeadConstraints key={board.id} leader={board.position.leader} declarer={board.position.contract.declarer} dealer={board.dealer} auction={board.auction} value={leadConstraints} onValidityChange={setLeadInputValid} onChange={cs=>{setLeadConstraints(cs);setLeadSample(null);}} /></fieldset>
                   <label>求解模式
                     <select aria-label="首攻求解模式" disabled={!!busy} value={leadMode} onChange={e=>{setLeadMode(e.target.value as 'beat'|'exact');setLeadSample(null);}}>
                       <option value="beat">快速 · 仅击败率</option>
@@ -1473,27 +1439,17 @@ export default function App() {
                   <p className="hint">{leadMode==='beat'?'只判断各首攻能否击败定约，不计算平均墩数。':'计算各首攻的精确墩数，耗时较长。'} 按设备能力并行计算。</p>
                   <div className="lead-readiness">
                     <span>首攻方</span>
-                    <b>{LABEL[position.leader]}家</b>
-                    <span>已知手牌</span>
+                    <b>{LABEL[board.position.leader]}家</b>
+                    <span>用于分析</span>
                     <b>
-                      {SEATS.filter((seat) => position.hands[seat] !== null).length}{" "}
-                      家
+                      仅首攻手
                     </b>
                   </div>
-                  {SEATS.filter((seat) => position.hands[seat] !== null).length !==
-                    1 || position.hands[position.leader]?.length !== 13 ? (
+                  {board.position.hands[board.position.leader]?.length !== 13 || board.position.current.length>0 || board.position.history.length>0 || board.position.won[0]+board.position.won[1]>0 ? (
                     <div className="lead-setup">
                       <p>
-                        分析需要只保留首攻方手牌，其余三家设为 ?。
+                        请录入未出牌的原始牌局，至少补齐首攻方 13 张牌；其他三家无需修改。
                       </p>
-                      {full && (
-                        <button
-                          className="light-button"
-                          onClick={prepareSingleDummyCopy}
-                        >
-                          <Copy size={14} /> 创建单明手副本
-                        </button>
-                      )}
                       <button
                         className="light-button"
                         onClick={() => setEditing(structuredClone(board))}
@@ -1539,7 +1495,7 @@ export default function App() {
                               "正在比较所有首攻",
                               "openingLead",
                               [
-                                position,
+                                board.position,
                                 leadCount,
                                 sampleSeed,
                                 cs,
