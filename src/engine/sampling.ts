@@ -1,8 +1,11 @@
 import {SEATS,SUITS,type Position,type Constraint,type SampleResult,type Seat,type Card} from '../core/types';
 import {deck,validate,turn,side,suit,rank,legalCards,remainingTricks,next} from '../core/cards';
 import type {Solver} from './dds';
+import {compileExpression,validateConstraints,hcp} from './lead-constraints';
 export function randomSource(seed:number){let a=seed|0;return ()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return ((t^t>>>14)>>>0)/4294967296;};}
 export function sampleDeals(p:Position,amount:number,seed:number,constraints:Constraint[],progress?:(n:number)=>void,minimumKnown=2){
+ validateConstraints(constraints);
+ const predicates=constraints.map(c=>compileExpression(c.expression??''));
  const errors=validate(p,false);if(errors.length)throw Error(errors.join('；'));
  const unknown=SEATS.filter(s=>p.hands[s]===null);if(!unknown.length)throw Error('没有未知手牌，请使用四明手精确分析');
  const known=SEATS.filter(s=>p.hands[s]!==null);if(known.length<minimumKnown)throw Error(minimumKnown===1?'单明手首攻分析需要录入首攻方手牌':'实验分析至少需要两家可见手牌');
@@ -20,6 +23,7 @@ export function sampleDeals(p:Position,amount:number,seed:number,constraints:Con
   if(unknown.some(s=>q.hands[s]!.some(c=>voids[s].has(suit(c)))))continue;
   // HCP and length constraints describe the original hand, including cards already played.
   if(constraints.some(c=>{const h=[...q.hands[c.seat]!,...p.current.filter(x=>x.seat===c.seat).map(x=>x.card),...p.history.flatMap(t=>t.cards.filter(x=>x.seat===c.seat).map(x=>x.card))];const hcp=h.reduce((n,x)=>n+Math.max(0,rank(x)-10),0);return hcp<(c.minHcp??0)||hcp>(c.maxHcp??37)||SUITS.some(s=>{const length=h.filter(x=>suit(x)===s).length,range=c.lengths?.[s];return range&&(length<range[0]||length>range[1]);});}))continue;
+  if(constraints.some((c,i)=>{const hand=[...q.hands[c.seat]!,...p.current.filter(x=>x.seat===c.seat).map(x=>x.card),...p.history.flatMap(t=>t.cards.filter(x=>x.seat===c.seat).map(x=>x.card))];if(!predicates[i](hand))return true;if(c.partnershipHcp){const partner=next(c.seat,2),other=[...q.hands[partner]!,...p.current.filter(x=>x.seat===partner).map(x=>x.card),...p.history.flatMap(t=>t.cards.filter(x=>x.seat===partner).map(x=>x.card))],points=hcp(hand)+hcp(other);return points<c.partnershipHcp[0]||points>c.partnershipHcp[1];}return false;}))continue;
   samples.push(q);progress?.(samples.length);
  }
  if(!samples.length)throw Error('没有找到符合条件的分布，请检查大牌点、牌型、缺门与历史记录的约束');
@@ -40,7 +44,7 @@ export function analyseOpeningLeads(solver:Solver,p:Position,amount:number,seed:
  if(p.leader!==next(p.contract.declarer))throw Error('首攻方必须是庄家的下家');
  const known=SEATS.filter(s=>p.hands[s]!==null);
  if(known.length!==1||known[0]!==p.leader||p.hands[p.leader]?.length!==13)throw Error('请只保留首攻方的 13 张手牌，其余三家设为 ?');
- if(!Number.isInteger(amount)||amount<16||amount>2000)throw Error('样本数需在 16–2000 之间');
+ if(!Number.isInteger(amount)||amount<16||amount>5000)throw Error('模拟次数需在 16–5000 之间');
  const {samples,attempts}=sampleDeals(p,amount,seed,constraints,undefined,1),target=p.contract.level+6;
  const stats=new Map<Card,{sum:number;success:number}>();legalCards(p).forEach(c=>stats.set(c,{sum:0,success:0}));
  samples.forEach((q,i)=>{const e=solver.solvePosition(q);for(const m of e.moves){const stat=stats.get(m.card)!;stat.sum+=m.tricks;stat.success+=m.tricks<target?1:0;}progress?.(i+1);});

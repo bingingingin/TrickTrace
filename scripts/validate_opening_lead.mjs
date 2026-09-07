@@ -19,16 +19,23 @@ try {
   assert.equal(await feature.getAttribute("aria-checked"), "true");
   await page.getByRole("button", { name: "首攻", exact: true }).waitFor();
   const choices = page.locator(".count-options > button");
-  assert.deepEqual(await choices.allTextContents(), ["32", "64", "128", "256"]);
-  assert.equal(await page.getByLabel("自定义模拟次数").inputValue(), "128");
+  assert.deepEqual(await choices.allTextContents(), ["250", "1000", "2500", "5000"]);
+  assert.equal(await page.getByLabel("自定义模拟次数").inputValue(), "1000");
+  await page.getByLabel('首攻分析叫牌').fill('P P 1NT P 3NT P P P');
+  await page.getByRole('button',{name:/用开叫模板填充/}).click();
+  assert.equal(await page.getByLabel('S 大牌点下限').inputValue(),'15');
+  assert.equal(await page.getByLabel('S 大牌点上限').inputValue(),'17');
 
   await page.getByRole("button", { name: /创建单明手副本/ }).click();
   assert.equal(await page.locator(".unknown-hand").count(), 3);
-  await page.getByLabel("自定义模拟次数").fill("16");
+  const sampleCount=Number(process.env.LEAD_TEST_COUNT||16);
+  await page.getByLabel("自定义模拟次数").fill(String(sampleCount));
+  const started=Date.now();
   await page.getByRole("button", { name: "开始首攻分析", exact: true }).click();
   await page.locator(".lead-ranking").waitFor({ timeout: 300000 });
   assert.equal(await page.locator(".lead-ranking .sample-move").count(), 13);
-  assert.match(await page.locator(".lead-ranking-head").innerText(), /16 个有效分布/);
+  assert.ok((await page.locator(".lead-ranking-head").innerText()).includes(`${sampleCount} 个有效分布`));
+  const elapsedMs=Date.now()-started;
   assert.equal(await page.locator(".best-lead em").innerText(), "首选");
 
   await page.setViewportSize({ width: 390, height: 844 });
@@ -56,13 +63,21 @@ try {
     JSON.stringify(overflow),
   );
   assert.deepEqual(errors, []);
+  await page.getByRole('button',{name:'关闭首攻分析 · 返回原牌局',exact:true}).click();
+  assert.equal(await page.locator('.unknown-hand').count(),0);
+  assert.equal(await feature.getAttribute('aria-checked'),'false');
+  await page.waitForFunction(()=>!document.querySelector('.play-button').disabled);
+  await page.getByRole('button',{name:'开始',exact:true}).click();
+  await page.waitForFunction(()=>document.querySelector('.playback>span')?.textContent==='1 / 52 张');
   const report = {
     url,
     passed: true,
-    samples: 16,
+    samples: sampleCount,
+    elapsedMs,
+    returnToOriginal: true,
     leadCount: 13,
     defaultEnabled: false,
-    countChoices: [32, 64, 128, 256],
+    countChoices: [250, 1000, 2500, 5000],
     errors,
   };
   await fs.writeFile(

@@ -64,6 +64,8 @@ import { compute, cancelAll } from "./engine/client";
 import { recognize, type Recognition } from "./vision/recognize";
 import CardPicker from "./components/CardPicker";
 import ImageReview from "./components/ImageReview";
+import LeadConstraints from "./components/LeadConstraints";
+import {validateConstraints} from "./engine/lead-constraints";
 import { chooseOptimal } from "./engine/line-policy";
 import { getTable, tableKey, canCalculateTable } from "./engine/table-client";
 import { boardMetadata, nextBoardNumber } from "./core/board-number";
@@ -154,6 +156,8 @@ export default function App() {
     [pasteText, setPasteText] = useState(""),
     [sample, setSample] = useState<SampleResult | null>(null),
     [leadSample, setLeadSample] = useState<SampleResult | null>(null),
+    [leadCount, setLeadCount] = useState(1000),
+    [leadConstraints, setLeadConstraints] = useState<Constraint[]>([]),
     [singleDummyEnabled, setSingleDummyEnabled] = useState(false),
     [sampleCount, setSampleCount] = useState(128),
     [sampleSeed, setSampleSeed] = useState(20260905),
@@ -179,6 +183,7 @@ export default function App() {
     full && !errors.length && remainingTricks(position)
       ? legalCards(position)
       : [];
+  useEffect(()=>{setLeadConstraints([]);setLeadSample(null);},[board.singleDummySourceId ?? board.id]);
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE, JSON.stringify(store));
@@ -246,7 +251,7 @@ export default function App() {
         method,
         args,
         setProgress,
-        method === "sample" || method === "openingLead" ? 300000 : 180000,
+        method === "openingLead" ? 1800000 : method === "sample" ? 300000 : 180000,
       );
       if (id === gen.current) apply(r);
     } catch (e) {
@@ -279,6 +284,7 @@ export default function App() {
     }
     const copy = structuredClone(board);
     copy.id = crypto.randomUUID();
+    copy.singleDummySourceId = board.id;
     copy.name = `${board.name} · 单明手`;
     copy.record = [];
     SEATS.forEach((seat) => {
@@ -290,6 +296,22 @@ export default function App() {
       selected: old.boards.length,
     }));
     setTab("lead");
+  }
+  function closeSingleDummy() {
+    setSingleDummyEnabled(false);
+    setTab("moves");
+    setAuto(false);
+    gen.current++;
+    cancelAll();
+    setBusy("");
+    setLeadSample(null);
+    setStore(old=>{
+      const current=old.boards[old.selected];
+      const original=old.boards.findIndex(candidate=>current.singleDummySourceId
+        ? candidate.id===current.singleDummySourceId
+        : current.name===`${candidate.name} · 单明手` && SEATS.every(s=>candidate.position.hands[s]?.length===13) && JSON.stringify(candidate.position.hands[current.position.leader])===JSON.stringify(current.position.hands[current.position.leader]));
+      return original>=0?{...old,selected:original}:old;
+    });
   }
   function playCard(card: Card, obs = false) {
     try {
@@ -702,9 +724,8 @@ export default function App() {
             role="switch"
             aria-checked={singleDummyEnabled}
             onClick={() => {
-              const enabled = !singleDummyEnabled;
-              setSingleDummyEnabled(enabled);
-              setTab(enabled ? "lead" : tab === "lead" ? "moves" : tab);
+              if(singleDummyEnabled) closeSingleDummy();
+              else {setSingleDummyEnabled(true);setTab("lead");}
             }}
           >
             <span className="feature-icon">
@@ -1385,6 +1406,7 @@ export default function App() {
               {tab === "lead" && singleDummyEnabled && (
                 <div className="experiment lead-analysis">
                   <span className="experiment-label">SINGLE DUMMY</span>
+                  <button className="light-button" onClick={closeSingleDummy}>关闭首攻分析 · 返回原牌局</button>
                   <h3>只看首攻手，比较每一张牌</h3>
                   <p>
                     固定{LABEL[position.leader]}家 13 张手牌，对其余 39
@@ -1396,11 +1418,12 @@ export default function App() {
                       <small>次数越多越稳定，耗时也更长</small>
                     </div>
                     <div className="count-options">
-                      {[32, 64, 128, 256].map((count) => (
+                      {[250, 1000, 2500, 5000].map((count) => (
                         <button
                           key={count}
-                          aria-pressed={sampleCount === count}
-                          onClick={() => setSampleCount(count)}
+                          disabled={!!busy}
+                          aria-pressed={leadCount === count}
+                          onClick={() => {setLeadCount(count);setLeadSample(null);}}
                         >
                           {count}
                         </button>
@@ -1409,17 +1432,19 @@ export default function App() {
                         <span>自定义</span>
                         <input
                           aria-label="自定义模拟次数"
+                          disabled={!!busy}
                           type="number"
                           min="16"
-                          max="2000"
-                          value={sampleCount}
+                          max="5000"
+                          value={leadCount}
                           onChange={(e) =>
-                            setSampleCount(Number(e.target.value))
+                            {setLeadCount(Number(e.target.value));setLeadSample(null);}
                           }
                         />
                       </label>
                     </div>
                   </div>
+                  <fieldset disabled={!!busy} className="lead-config"><LeadConstraints key={board.singleDummySourceId??board.id} leader={position.leader} declarer={position.contract.declarer} dealer={board.dealer} auction={board.auction} value={leadConstraints} onChange={cs=>{setLeadConstraints(cs);setLeadSample(null);}} /></fieldset>
                   <div className="lead-readiness">
                     <span>首攻方</span>
                     <b>{LABEL[position.leader]}家</b>
@@ -1476,40 +1501,19 @@ export default function App() {
                           <option value="tricks">庄家平均墩数最少</option>
                         </select>
                       </label>
-                      <details>
-                        <summary>叫牌推断约束</summary>
-                        <p>
-                          例如限制庄家大牌点和黑桃长度：
-                          <code>
-                            {JSON.stringify([
-                              {
-                                seat: position.contract.declarer,
-                                minHcp: 15,
-                                maxHcp: 17,
-                                lengths: { S: [2, 5] },
-                              },
-                            ])}
-                          </code>
-                        </p>
-                        <textarea
-                          value={constraints}
-                          onChange={(e) => setConstraints(e.target.value)}
-                        />
-                      </details>
                       <button
                         className="primary"
                         disabled={!!busy}
                         onClick={() => {
                           try {
-                            const cs = JSON.parse(constraints) as Constraint[];
-                            if (!Array.isArray(cs))
-                              throw Error("约束必须为数组");
+                            const cs = leadConstraints;
+                            validateConstraints(cs);
                             void task(
                               "正在比较所有首攻",
                               "openingLead",
                               [
                                 position,
-                                sampleCount,
+                                leadCount,
                                 sampleSeed,
                                 cs,
                                 objective,
@@ -1528,7 +1532,7 @@ export default function App() {
                   {leadSample && (
                     <div className="lead-ranking">
                       <div className="lead-ranking-head">
-                        <span>{leadSample.samples} 个有效分布</span>
+                        <span>{leadSample.samples} 个有效分布 / 目标 {leadCount} · 尝试 {leadSample.attempts} 次{leadSample.samples<leadCount?' · 未达到目标，约束接受率较低':''}</span>
                         <small>种子 {leadSample.seed}</small>
                       </div>
                       {leadSample.moves.map((move, index) => (
