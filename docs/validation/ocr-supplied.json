@@ -6,191 +6,341 @@
     "validationAccuracy": 0.9185000061988831
   },
   "summary": {
-    "images": 5,
-    "exactImages": 4,
-    "correct": 256,
-    "found": 259,
-    "expected": 260
+    "images": 7,
+    "exactImages": 7,
+    "correct": 311,
+    "found": 311,
+    "expected": 311
   },
   "results": [
     {
       "file": "双明手1.jpg",
       "exact": true,
+      "metadataExact": true,
+      "metadata": {
+        "contract": "3NTS",
+        "dealer": "W",
+        "vulnerability": "None",
+        "leader": "W",
+        "current": []
+      },
       "differences": [
         {
           "seat": "N",
           "missing": [],
           "extra": [],
           "correct": 13,
-          "found": 13
+          "found": 13,
+          "exact": true
         },
         {
           "seat": "E",
           "missing": [],
           "extra": [],
           "correct": 13,
-          "found": 13
+          "found": 13,
+          "exact": true
         },
         {
           "seat": "S",
           "missing": [],
           "extra": [],
           "correct": 13,
-          "found": 13
+          "found": 13,
+          "exact": true
         },
         {
           "seat": "W",
           "missing": [],
           "extra": [],
           "correct": 13,
-          "found": 13
+          "found": 13,
+          "exact": true
         }
       ]
     },
     {
       "file": "双明手2.jpg",
       "exact": true,
+      "metadataExact": true,
+      "metadata": {
+        "contract": "3NTS",
+        "dealer": "S",
+        "vulnerability": "EW",
+        "leader": "W",
+        "current": []
+      },
       "differences": [
         {
           "seat": "N",
           "missing": [],
           "extra": [],
           "correct": 13,
-          "found": 13
+          "found": 13,
+          "exact": true
         },
         {
           "seat": "E",
           "missing": [],
           "extra": [],
           "correct": 13,
-          "found": 13
+          "found": 13,
+          "exact": true
         },
         {
           "seat": "S",
           "missing": [],
           "extra": [],
           "correct": 13,
-          "found": 13
+          "found": 13,
+          "exact": true
         },
         {
           "seat": "W",
           "missing": [],
           "extra": [],
           "correct": 13,
-          "found": 13
+          "found": 13,
+          "exact": true
         }
       ]
     },
     {
       "file": "双明手3.jpg",
       "exact": true,
+      "metadataExact": true,
+      "metadata": {
+        "contract": "4NTS",
+        "dealer": "W",
+        "vulnerability": "None",
+        "leader": "W",
+        "current": []
+      },
       "differences": [
         {
           "seat": "N",
           "missing": [],
           "extra": [],
           "correct": 13,
-          "found": 13
+          "found": 13,
+          "exact": true
         },
         {
           "seat": "E",
           "missing": [],
           "extra": [],
           "correct": 13,
-          "found": 13
+          "found": 13,
+          "exact": true
         },
         {
           "seat": "S",
           "missing": [],
           "extra": [],
           "correct": 13,
-          "found": 13
+          "found": 13,
+          "exact": true
         },
         {
           "seat": "W",
           "missing": [],
           "extra": [],
           "correct": 13,
-          "found": 13
+          "found": 13,
+          "exact": true
         }
       ]
     },
     {
       "file": "双明手4.jpg",
       "exact": true,
+      "metadataExact": true,
+      "metadata": {
+        "contract": "3NTS",
+        "dealer": "N",
+        "vulnerability": "NS",
+        "leader": "W",
+        "current": []
+      },
       "differences": [
         {
           "seat": "N",
           "missing": [],
           "extra": [],
           "correct": 13,
-          "found": 13
+          "found": 13,
+          "exact": true
         },
         {
           "seat": "E",
           "missing": [],
           "extra": [],
           "correct": 13,
-          "found": 13
+          "found": 13,
+          "exact": true
         },
         {
           "seat": "S",
           "missing": [],
           "extra": [],
           "correct": 13,
-          "found": 13
+          "found": 13,
+          "exact": true
         },
         {
           "seat": "W",
           "missing": [],
           "extra": [],
           "correct": 13,
-          "found": 13
+          "found": 13,
+          "exact": true
         }
       ]
     },
     {
       "file": "双明手5.jpg",
-      "exact": false,
+      "exact": true,
+      "metadataExact": true,
+      "metadata": {
+        "contract": "3NTS",
+        "dealer": "N",
+        "vulnerability": "None",
+        "leader": "W",
+        "current": []
+      },
       "differences": [
         {
           "seat": "N",
           "missing": [],
           "extra": [],
           "correct": 13,
-          "found": 13
+          "found": 13,
+          "exact": true
         },
         {
           "seat": "E",
-          "missing": [
-            "CK",
-            "C4"
-          ],
-          "extra": [
-            "H3",
-            "D4"
-          ],
-          "correct": 11,
-          "found": 13
+          "missing": [],
+          "extra": [],
+          "correct": 13,
+          "found": 13,
+          "exact": true
         },
         {
           "seat": "S",
-          "missing": [
-            "S5",
-            "DT"
-          ],
-          "extra": [
-            "DJ"
-          ],
-          "correct": 11,
-          "found": 12
+          "missing": [],
+          "extra": [],
+          "correct": 13,
+          "found": 13,
+          "exact": true
         },
         {
           "seat": "W",
           "missing": [],
           "extra": [],
           "correct": 13,
-          "found": 13
+          "found": 13,
+          "exact": true
+        }
+      ]
+    },
+    {
+      "file": "坐庄分析1.jpg",
+      "exact": true,
+      "metadataExact": true,
+      "metadata": {
+        "contract": "4NTN",
+        "dealer": "W",
+        "vulnerability": "None",
+        "leader": "E",
+        "current": [
+          "ESJ"
+        ]
+      },
+      "differences": [
+        {
+          "seat": "N",
+          "missing": [],
+          "extra": [],
+          "correct": 13,
+          "found": 13,
+          "exact": true
+        },
+        {
+          "seat": "E",
+          "expected": null,
+          "missing": [],
+          "extra": [],
+          "correct": 0,
+          "found": 0,
+          "exact": true
+        },
+        {
+          "seat": "S",
+          "missing": [],
+          "extra": [],
+          "correct": 13,
+          "found": 13,
+          "exact": true
+        },
+        {
+          "seat": "W",
+          "expected": null,
+          "missing": [],
+          "extra": [],
+          "correct": 0,
+          "found": 0,
+          "exact": true
+        }
+      ]
+    },
+    {
+      "file": "防守分析1.jpg",
+      "exact": true,
+      "metadataExact": true,
+      "metadata": {
+        "contract": "3NTW",
+        "dealer": "S",
+        "vulnerability": "EW",
+        "leader": "N",
+        "current": [
+          "ND5",
+          "EDT"
+        ]
+      },
+      "differences": [
+        {
+          "seat": "N",
+          "expected": null,
+          "missing": [],
+          "extra": [],
+          "correct": 0,
+          "found": 0,
+          "exact": true
+        },
+        {
+          "seat": "E",
+          "missing": [],
+          "extra": [],
+          "correct": 12,
+          "found": 12,
+          "exact": true
+        },
+        {
+          "seat": "S",
+          "missing": [],
+          "extra": [],
+          "correct": 13,
+          "found": 13,
+          "exact": true
+        },
+        {
+          "seat": "W",
+          "expected": null,
+          "missing": [],
+          "extra": [],
+          "correct": 0,
+          "found": 0,
+          "exact": true
         }
       ]
     }

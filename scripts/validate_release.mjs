@@ -18,10 +18,22 @@ try {
  await page.locator('input[type=file]').setInputFiles('images/'+fixture.file);
  await page.getByLabel('N 手牌文本',{exact:true}).waitFor({timeout:180000});
  for(const [i,seat] of [...'NESW'].entries())assert.equal(await page.getByLabel(`${seat} 手牌文本`,{exact:true}).inputValue(),fixture.hands[i]);
+ await page.getByRole('button',{name:'关闭',exact:true}).click();
+ const partial=JSON.parse(await fs.readFile('tests/fixtures/recognition.json','utf8')).find(f=>f.file==='防守分析1.jpg');
+ await page.locator('input[type=file]').setInputFiles('images/'+partial.file);
+ await page.getByLabel('当前墩已出牌，按顺序空格分隔',{exact:true}).waitFor({timeout:180000});
+ for(const [i,seat] of [...'NESW'].entries())assert.equal(await page.getByLabel(`${seat} 手牌文本`,{exact:true}).inputValue(),partial.hands[i]);
+ assert.equal(await page.locator('.editor-fields label').filter({hasText:/^定约/}).locator('select').inputValue(),'3');
+ assert.equal(await page.locator('.editor-fields label').filter({hasText:/^将牌/}).locator('select').inputValue(),'NT');
+ assert.equal(await page.locator('.editor-fields label').filter({hasText:/^庄家/}).locator('select').inputValue(),'W');
+ assert.equal(await page.locator('.editor-fields label').filter({hasText:/^发牌/}).locator('select').inputValue(),'S');
+ assert.equal(await page.locator('.editor-fields label').filter({hasText:/^局况/}).locator('select').inputValue(),'EW');
+ assert.equal(await page.locator('.editor-fields label').filter({hasText:/本墩引牌方/}).locator('select').inputValue(),'N');
+ assert.equal(await page.getByLabel('当前墩已出牌，按顺序空格分隔',{exact:true}).inputValue(),'D5 DT');
  assert.deepEqual(errors,[]);assert.deepEqual(external,[]);assert.deepEqual(uploads,[]);
  const privateImage=await page.request.get(new URL('/images/'+encodeURIComponent(fixture.file),url).href);
  assert.ok(!privateImage.headers()['content-type']?.startsWith('image/'),'Private fixtures must not be deployed');
  await page.screenshot({path:'artifacts/release-ocr.png',fullPage:true});
- const report={url,passed:true,ocrFile:fixture.file,correctCards:52,pageErrors:errors,externalRequests:external,imageUploads:uploads};
+ const report={url,passed:true,ocrFiles:[fixture.file,partial.file],verifiedVisibleCards:77,partialState:'3NTW · N:D5 E:DT',pageErrors:errors,externalRequests:external,imageUploads:uploads};
  await fs.writeFile('artifacts/release-report.json',JSON.stringify(report,null,2)+'\n');console.log(report);
 } finally {await browser.close();}

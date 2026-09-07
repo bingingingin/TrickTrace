@@ -43,5 +43,33 @@
       "A5.AJ84.T9852.A8",
       "K86.K7.A43.QJT62"
     ]
+  },
+  {
+    "file": "坐庄分析1.jpg",
+    "hands": [
+      "AK73.Q94.KQ98.A3",
+      "?",
+      "Q86.AK52.A72.J85",
+      "?"
+    ],
+    "contract": "4NTN",
+    "dealer": "W",
+    "vulnerability": "None",
+    "leader": "E",
+    "current": ["ESJ"]
+  },
+  {
+    "file": "防守分析1.jpg",
+    "hands": [
+      "?",
+      "T72.J94.A.QT876",
+      "A86.QT8765.876.3",
+      "?"
+    ],
+    "contract": "3NTW",
+    "dealer": "S",
+    "vulnerability": "EW",
+    "leader": "N",
+    "current": ["ND5", "EDT"]
   }
 ]

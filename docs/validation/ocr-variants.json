@@ -1,0 +1,501 @@
+{
+  "dataset": "Supplied screenshot resizes and JPEG recompression; not independent",
+  "images": 14,
+  "exactImages": 8,
+  "results": [
+    {
+      "file": "双明手1.jpg",
+      "width": 960,
+      "jpegQuality": 0.85,
+      "exact": true,
+      "stateExact": true,
+      "differences": [
+        {
+          "seat": "N",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        },
+        {
+          "seat": "E",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        },
+        {
+          "seat": "S",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        },
+        {
+          "seat": "W",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        }
+      ]
+    },
+    {
+      "file": "双明手1.jpg",
+      "width": 720,
+      "jpegQuality": 0.85,
+      "exact": true,
+      "stateExact": true,
+      "differences": [
+        {
+          "seat": "N",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        },
+        {
+          "seat": "E",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        },
+        {
+          "seat": "S",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        },
+        {
+          "seat": "W",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        }
+      ]
+    },
+    {
+      "file": "双明手2.jpg",
+      "width": 960,
+      "jpegQuality": 0.85,
+      "exact": true,
+      "stateExact": true,
+      "differences": [
+        {
+          "seat": "N",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        },
+        {
+          "seat": "E",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        },
+        {
+          "seat": "S",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        },
+        {
+          "seat": "W",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        }
+      ]
+    },
+    {
+      "file": "双明手2.jpg",
+      "width": 720,
+      "jpegQuality": 0.85,
+      "exact": false,
+      "stateExact": true,
+      "differences": [
+        {
+          "seat": "N",
+          "missing": [
+            "CK"
+          ],
+          "extra": [],
+          "unknownPreserved": true
+        },
+        {
+          "seat": "E",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        },
+        {
+          "seat": "S",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        },
+        {
+          "seat": "W",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        }
+      ]
+    },
+    {
+      "file": "双明手3.jpg",
+      "width": 960,
+      "jpegQuality": 0.85,
+      "exact": true,
+      "stateExact": true,
+      "differences": [
+        {
+          "seat": "N",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        },
+        {
+          "seat": "E",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        },
+        {
+          "seat": "S",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        },
+        {
+          "seat": "W",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        }
+      ]
+    },
+    {
+      "file": "双明手3.jpg",
+      "width": 720,
+      "jpegQuality": 0.85,
+      "exact": true,
+      "stateExact": true,
+      "differences": [
+        {
+          "seat": "N",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        },
+        {
+          "seat": "E",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        },
+        {
+          "seat": "S",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        },
+        {
+          "seat": "W",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        }
+      ]
+    },
+    {
+      "file": "双明手4.jpg",
+      "width": 960,
+      "jpegQuality": 0.85,
+      "exact": true,
+      "stateExact": true,
+      "differences": [
+        {
+          "seat": "N",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        },
+        {
+          "seat": "E",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        },
+        {
+          "seat": "S",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        },
+        {
+          "seat": "W",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        }
+      ]
+    },
+    {
+      "file": "双明手4.jpg",
+      "width": 720,
+      "jpegQuality": 0.85,
+      "exact": true,
+      "stateExact": true,
+      "differences": [
+        {
+          "seat": "N",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        },
+        {
+          "seat": "E",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        },
+        {
+          "seat": "S",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        },
+        {
+          "seat": "W",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        }
+      ]
+    },
+    {
+      "file": "双明手5.jpg",
+      "width": 960,
+      "jpegQuality": 0.85,
+      "exact": false,
+      "stateExact": true,
+      "differences": [
+        {
+          "seat": "N",
+          "missing": [
+            "D7"
+          ],
+          "extra": [],
+          "unknownPreserved": true
+        },
+        {
+          "seat": "E",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        },
+        {
+          "seat": "S",
+          "missing": [
+            "DT"
+          ],
+          "extra": [],
+          "unknownPreserved": true
+        },
+        {
+          "seat": "W",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        }
+      ]
+    },
+    {
+      "file": "双明手5.jpg",
+      "width": 720,
+      "jpegQuality": 0.85,
+      "exact": false,
+      "stateExact": true,
+      "differences": [
+        {
+          "seat": "N",
+          "missing": [
+            "HT",
+            "DJ",
+            "D7",
+            "C7",
+            "C5"
+          ],
+          "extra": [],
+          "unknownPreserved": true
+        },
+        {
+          "seat": "E",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        },
+        {
+          "seat": "S",
+          "missing": [
+            "DT",
+            "D8",
+            "D5",
+            "D2",
+            "CA",
+            "C8"
+          ],
+          "extra": [],
+          "unknownPreserved": true
+        },
+        {
+          "seat": "W",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        }
+      ]
+    },
+    {
+      "file": "坐庄分析1.jpg",
+      "width": 960,
+      "jpegQuality": 0.85,
+      "exact": true,
+      "stateExact": true,
+      "differences": [
+        {
+          "seat": "N",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        },
+        {
+          "seat": "E",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        },
+        {
+          "seat": "S",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        },
+        {
+          "seat": "W",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        }
+      ]
+    },
+    {
+      "file": "坐庄分析1.jpg",
+      "width": 720,
+      "jpegQuality": 0.85,
+      "exact": false,
+      "stateExact": true,
+      "differences": [
+        {
+          "seat": "N",
+          "missing": [
+            "CA"
+          ],
+          "extra": [
+            "C4"
+          ],
+          "unknownPreserved": true
+        },
+        {
+          "seat": "E",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        },
+        {
+          "seat": "S",
+          "missing": [
+            "SQ",
+            "S8"
+          ],
+          "extra": [],
+          "unknownPreserved": true
+        },
+        {
+          "seat": "W",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        }
+      ]
+    },
+    {
+      "file": "防守分析1.jpg",
+      "width": 960,
+      "jpegQuality": 0.85,
+      "exact": false,
+      "stateExact": false,
+      "differences": [
+        {
+          "seat": "N",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        },
+        {
+          "seat": "E",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        },
+        {
+          "seat": "S",
+          "missing": [
+            "C3"
+          ],
+          "extra": [],
+          "unknownPreserved": true
+        },
+        {
+          "seat": "W",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        }
+      ]
+    },
+    {
+      "file": "防守分析1.jpg",
+      "width": 720,
+      "jpegQuality": 0.85,
+      "exact": false,
+      "stateExact": false,
+      "differences": [
+        {
+          "seat": "N",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        },
+        {
+          "seat": "E",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        },
+        {
+          "seat": "S",
+          "missing": [
+            "C3"
+          ],
+          "extra": [
+            "DJ"
+          ],
+          "unknownPreserved": true
+        },
+        {
+          "seat": "W",
+          "missing": [],
+          "extra": [],
+          "unknownPreserved": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,14 +1,19 @@
 """Independent rendered text-diagram regression set; no generated image is used to train the model."""
 from pathlib import Path
 from PIL import Image,ImageDraw,ImageFont
-import re,json,random
+import re,json,random,argparse
 root=Path(__file__).resolve().parents[1]
-out=root/'artifacts/ocr-independent';out.mkdir(parents=True,exist_ok=True)
+parser=argparse.ArgumentParser()
+parser.add_argument('--start',type=int,default=0)
+parser.add_argument('--count',type=int,default=80)
+parser.add_argument('--output',default='artifacts/ocr-independent')
+args=parser.parse_args()
+out=root/args.output;out.mkdir(parents=True,exist_ok=True)
 text=(root/'vendor/dds/hands/list100.txt').read_text()
 deals=re.findall(r'PBN[^\n]*"N:([^"\n]+)"',text)
 fonts=['pala.ttf','bookos.ttf','corbel.ttf','gadugi.ttf']
 random.seed(90871);manifest=[]
-for i,deal in enumerate(deals[:80]):
+for i,deal in enumerate(deals[args.start:args.start+args.count],start=args.start):
  w=random.choice([800,960,1120,1280]);h=round(w*2.1875);im=Image.new('RGB',(w,h),random.choice(['#eeeeee','#ffffff','#f5f3eb']));d=ImageDraw.Draw(im)
  f=ImageFont.truetype('C:/Windows/Fonts/'+fonts[i%4],round(w*.044));symbol=ImageFont.truetype('C:/Windows/Fonts/arial.ttf',round(w*.047))
  positions=[(.305,.122),(.556,.24),(.305,.353),(.055,.24)]
