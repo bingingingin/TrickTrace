@@ -8,7 +8,7 @@ try {
   const page = await browser.newPage({ viewport: { width: 1440, height: 1050 } });
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
-  await page.addInitScript(() => localStorage.clear());
+  await page.addInitScript(() => {if(!sessionStorage.getItem('lead-test-initialized')){localStorage.clear();sessionStorage.setItem('lead-test-initialized','1');}});
   await page.goto(url, { waitUntil: "domcontentloaded", timeout: 120000 });
 
   const feature = page.getByRole("switch", { name: /单明手最佳首攻/ });
@@ -82,6 +82,28 @@ try {
   await page.waitForFunction(()=>!document.querySelector('.play-button').disabled);
   await page.getByRole('button',{name:'开始',exact:true}).click();
   await page.waitForFunction(()=>document.querySelector('.playback>span')?.textContent==='1 / 52 张');
+  // Destructive controls operate only on this isolated test profile.
+  const savedCount=await page.evaluate(()=>JSON.parse(localStorage.getItem('tricktrace.v1')).boards.length);
+  const savedStore=await page.evaluate(()=>localStorage.getItem('tricktrace.v1'));
+  page.once('dialog',dialog=>dialog.dismiss());
+  await page.getByRole('button',{name:'清空全部',exact:true}).click();
+  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('tricktrace.v1')).boards.length),savedCount);
+  page.once('dialog',dialog=>dialog.accept());
+  await page.getByRole('button',{name:'删除当前牌例',exact:true}).click();
+  await page.waitForFunction(n=>JSON.parse(localStorage.getItem('tricktrace.v1')).boards.length===n,savedCount-1);
+  await page.evaluate(s=>localStorage.setItem('tricktrace.v1',s),savedStore);
+  await page.reload();
+  await page.setViewportSize({width:900,height:1000});
+  assert.equal(await page.getByRole('button',{name:'清空全部',exact:true}).isVisible(),true);
+  page.once('dialog',dialog=>dialog.accept());
+  await page.getByRole('button',{name:'清空全部',exact:true}).click();
+  await page.waitForFunction(()=>{const s=JSON.parse(localStorage.getItem('tricktrace.v1'));return s.boards.length===1&&s.boards[0].name==='新牌局 1'&&Object.keys(s.sessions).length===0;});
+  await page.reload();
+  assert.equal(await page.locator('.workspace-heading h1').innerText(),'新牌局 1');
+  page.once('dialog',dialog=>dialog.accept());
+  await page.getByRole('button',{name:'删除当前牌例',exact:true}).click();
+  assert.equal(await page.locator('.workspace-heading h1').innerText(),'新牌局 1');
+  assert.deepEqual(errors,[]);
   const report = {
     url,
     passed: true,
@@ -90,6 +112,7 @@ try {
     mode,
     timing,
     returnToOriginal: true,
+    deleteAndClear: true,
     leadCount: 13,
     defaultEnabled: false,
     countChoices: [250, 1000, 2500, 5000],

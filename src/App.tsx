@@ -419,6 +419,7 @@ export default function App() {
     setPaste(false);
   }
   function deleteBoard(index: number) {
+    if(!window.confirm(`删除“${store.boards[index].name}”及其播放分支？此操作无法撤销。`))return;
     setAuto(false);
     setStore((old) => {
       const removed = old.boards[index],
@@ -437,6 +438,13 @@ export default function App() {
           : Math.min(old.selected, boards.length - 1);
       return { ...old, boards, selected, sessions };
     });
+  }
+  function clearBoards() {
+    if(!window.confirm(`清空全部 ${store.boards.length} 副牌例及其播放分支？此操作无法撤销，清空后保留一副空白牌局。`))return;
+    setAuto(false);setAutoMode(false);gen.current++;cancelAll();setBusy('');
+    setSingleDummyEnabled(false);setTab('moves');setEditing(null);
+    const blank=boardFromHands(['?','?','?','?']);Object.assign(blank,boardMetadata(1));blank.name='新牌局 1';
+    setStore({version:1,boards:[blank],selected:0,sessions:{}});
   }
   async function fileInput(file: File) {
     setError("");
@@ -771,6 +779,7 @@ export default function App() {
                   onClick={() => deleteBoard(i)}
                 >
                   <Trash2 size={14} />
+                  <span>删除</span>
                 </button>
               </div>
             ))}
@@ -811,6 +820,9 @@ export default function App() {
               <div className="eyebrow">THE ANALYSIS ROOM</div>
               <h1>{board.name}</h1>
             </div>
+            <div className="board-actions">
+            <button className="light-button" onClick={()=>deleteBoard(store.selected)}><Trash2 size={15}/> 删除当前牌例</button>
+            <button className="light-button" onClick={clearBoards}><Trash2 size={15}/> 清空全部</button>
             <button
               className="light-button"
               onClick={() => {
@@ -821,6 +833,7 @@ export default function App() {
             >
               <Settings2 size={16} /> 编辑牌局
             </button>
+            </div>
           </div>
           <div className="contract-bar">
             <span className="board-badge">

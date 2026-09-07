@@ -2521,3 +2521,7 @@ footer > a {
 .lead-seat-fields {padding:10px 0;border-top:1px solid #d6dfd9;border-bottom:1px solid #d6dfd9;margin:10px 0;}
 .lead-seat-fields input[aria-invalid="true"] {border-color:#b63d35;}
 .lead-constraints .constraint-presets button {min-height:32px;padding:6px 8px;font-size:12px;}
+.board-actions {display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;}
+.board-actions button {min-height:36px;}
+.delete-board {width:46px;flex-basis:46px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:3px;font-size:11px;}
+@media(max-width:760px){.workspace-heading{flex-wrap:wrap;gap:10px}.board-actions{width:100%;justify-content:flex-start;}.board-actions button{flex:1;padding:8px 5px;font-size:11px;}}
