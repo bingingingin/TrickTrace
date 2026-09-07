@@ -1420,8 +1420,12 @@ export default function App() {
               )}
               {tab === "lead" && singleDummyEnabled && (
                 <div className="experiment lead-analysis">
-                  <span className="experiment-label">SINGLE DUMMY</span>
-                  <button className="light-button" onClick={closeSingleDummy}>关闭首攻分析 · 返回原牌局</button>
+                  <div className="lead-panel-toolbar">
+                    <span className="experiment-label">SINGLE DUMMY</span>
+                    <button className="lead-back" title="关闭首攻分析并返回原牌局" onClick={closeSingleDummy}>
+                      <ChevronLeft size={14} aria-hidden="true" /> 返回原牌局
+                    </button>
+                  </div>
                   <h3>只看首攻手，比较每一张牌</h3>
                   <p>
                     固定{LABEL[position.leader]}家 13 张手牌，对其余 39

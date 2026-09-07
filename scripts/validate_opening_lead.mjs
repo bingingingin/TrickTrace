@@ -23,7 +23,7 @@ try {
   assert.equal(await page.getByLabel("自定义模拟次数").inputValue(), "1000");
   await page.getByLabel('首攻分析叫牌').fill('P P 1NT P 3NT P P P');
   await page.getByRole('button',{name:/用开叫模板填充/}).click();
-  assert.equal(await page.getByLabel('S 大牌点',{exact:true}).inputValue(),'15-17');
+  await page.waitForFunction(()=>document.querySelector('input[aria-label="S 大牌点"]')?.value==='15-17');
   await page.getByRole('button',{name:'清空叫牌',exact:true}).click();
   await page.getByRole('button',{name:'不叫',exact:true}).click();
   await page.getByRole('button',{name:'不叫',exact:true}).click();
@@ -76,7 +76,7 @@ try {
     JSON.stringify(overflow),
   );
   assert.deepEqual(errors, []);
-  await page.getByRole('button',{name:'关闭首攻分析 · 返回原牌局',exact:true}).click();
+  await page.getByRole('button',{name:'返回原牌局',exact:true}).click();
   assert.equal(await page.locator('.unknown-hand').count(),0);
   assert.equal(await feature.getAttribute('aria-checked'),'false');
   await page.waitForFunction(()=>!document.querySelector('.play-button').disabled);
