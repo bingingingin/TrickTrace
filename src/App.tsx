@@ -23,6 +23,8 @@ import {
   Focus,
   Copy,
   ArrowRight,
+  Moon,
+  Sun,
 } from "lucide-react";
 import {
   SEATS,
@@ -81,6 +83,19 @@ type Stored = {
   sessions: Record<string, Session>;
 };
 const STORAGE = "tricktrace.v1";
+const THEME_STORAGE = "tricktrace.theme";
+type Theme = "light" | "dark";
+function initialTheme(): Theme {
+  try {
+    const saved = localStorage.getItem(THEME_STORAGE);
+    if (saved === "light" || saved === "dark") return saved;
+  } catch {
+    /* Theme persistence is optional. */
+  }
+  return window.matchMedia?.("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
+}
 function initial(): Stored {
   try {
     const x = JSON.parse(localStorage.getItem(STORAGE) || "null");
@@ -125,6 +140,7 @@ function seedSession(b: Board): Session {
 }
 export default function App() {
   const [store, setStore] = useState<Stored>(initial),
+    [theme, setTheme] = useState<Theme>(initialTheme),
     [editing, setEditing] = useState<Board | null>(null),
     [imageResult, setImageResult] = useState<Recognition | null>(null),
     [imageURL, setImageURL] = useState("");
@@ -173,6 +189,18 @@ export default function App() {
     full && !errors.length && remainingTricks(position)
       ? legalCards(position)
       : [];
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    document.documentElement.style.colorScheme = theme;
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute("content", theme === "dark" ? "#0b1513" : "#f4f5f1");
+    try {
+      localStorage.setItem(THEME_STORAGE, theme);
+    } catch {
+      /* The selected theme still applies for this session. */
+    }
+  }, [theme]);
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE, JSON.stringify(store));
@@ -585,8 +613,12 @@ export default function App() {
       }}
     >
       <header>
-        <a className="brand" href="#">
-          <span className="brand-mark">迹</span>
+        <a className="brand" href="#" aria-label="墩迹 TrickTrace 首页">
+          <img
+            className="brand-mark"
+            src={theme === "dark" ? "/brand/tricktrace-mark-dark.png" : "/brand/tricktrace-mark.png"}
+            alt=""
+          />
           <span>
             墩迹 <b>TrickTrace</b>
             <small>循牌而行，见墩之迹。</small>
@@ -596,6 +628,24 @@ export default function App() {
           <span className="nav-active">分析工作台</span>
           <button onClick={() => setHelp(true)}>
             使用指南 <ArrowUpRight size={15} />
+          </button>
+          <button
+            className="theme-toggle"
+            type="button"
+            role="switch"
+            aria-checked={theme === "dark"}
+            aria-label={theme === "dark" ? "切换到浅色模式" : "切换到深色模式"}
+            title={theme === "dark" ? "切换到浅色模式" : "切换到深色模式"}
+            onClick={() => setTheme((value) => (value === "dark" ? "light" : "dark"))}
+          >
+            <span className="theme-toggle-track" aria-hidden="true">
+              <span className="theme-toggle-thumb">
+                {theme === "dark" ? <Moon size={12} /> : <Sun size={12} />}
+              </span>
+            </span>
+            <span className="theme-toggle-label">
+              {theme === "dark" ? "深色" : "浅色"}
+            </span>
           </button>
         </nav>
         <span className="local-badge">
@@ -1420,7 +1470,10 @@ export default function App() {
             </section>
           )}
           <footer>
-            <span>墩迹 TrickTrace</span>
+            <span className="footer-brand">
+              <img src={theme === "dark" ? "/brand/tricktrace-mark-dark.png" : "/brand/tricktrace-mark.png"} alt="" />
+              墩迹 TrickTrace
+            </span>
             <span>循牌而行，见墩之迹。</span>
             <a
               href="https://github.com/dds-bridge/dds"
