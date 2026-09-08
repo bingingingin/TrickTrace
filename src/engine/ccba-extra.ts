@@ -180,6 +180,8 @@ export function extraUncontested(p:string[],passed:boolean):Rule|undefined{
    if(c==='4C'||c==='4D'||a==='2D'&&c==='3S'||a==='2H'&&c==='4H')return r('转移后跳单缺：11–14 点，所叫短门；通常六张目标高花不硬限定','3.3',{...points(11,14),...len(c[1],0,1)});
   }
   if(/^1[CDHS]$/.test(o)&&/^1[DHS]$/.test(a)&&b==='1NT'){
+   if(o==='1H'&&a==='1S'&&c==='2H')return r('三张红心支持，弱牌示选','2.2',len('H',3,3));
+   if(o==='1H'&&a==='1S'&&c==='3H')return r('五张黑桃、四张红心支持，双套点力集中，逼局','2.2',{lengths:{S:[5,13],H:[4,13]}});
    if(o==='1C'&&a==='1D'&&(c==='3H'||c==='3S'))return r('Walsh 后 54 双低，所叫高花单张、另一高花三张，满贯兴趣','1.2',{lengths:{D:[5,5],C:[4,4],[c[1]]:[1,1],[other(c[1])]:[3,3]}});
    if(c==='2NT')return o==='1C'&&a==='1D'?r('Walsh 后 54 双低花邀请','1.2',{lengths:{D:[5,13],C:[4,13]}}):r('双路重询体系的 2NT：迫转 3C，不是自然邀请','1.3 / 2.2');
    if(o==='1C'&&a==='1D'&&/^2[HS]$/.test(c))return r('Walsh 后五张方片、四张高花，逼局','1.2',{lengths:{D:[5,13],[c[1]]:[4,13]}});
@@ -488,6 +490,8 @@ export function slamRule(p:string[],fit:string|undefined,fitLength=8):Rule|undef
    if(p.length===ask+3)return r('最经济非将牌花色询问将牌 Q，不表示该花色套','9.1');
    if(p.length===ask+4){
     const last=p.at(-1)!,high=rank(next)>rank(`5${fit}`);
+    if(high&&last==='5NT')return r('有将牌 Q，无可在六阶将牌以下显示的边花 K','9.1',{expression:`${fit} Q`});
+    if(last===`7${fit}`)return r('有将牌 Q 及额外赢墩来源，选择大满贯','9.1',{expression:`${fit} Q`});
     if(last===`${high?6:5}${fit}`)return r('问将牌 Q 的否定答叫','9.1',{expression:`no ${fit} Q`});
     if(!high&&last===`6${fit}`)return r('有将牌 Q，无边花 K','9.1',{expression:[`${fit} Q`,...SUITS.filter(s=>s!==fit).map(s=>`no ${s} K`)].join(', ')});
     if(isSuit(last)&&last[1]!==fit)return r('有将牌 Q 及所叫花色 K','9.1',{expression:`${fit} Q, ${last[1]} K`});

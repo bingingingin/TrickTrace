@@ -1,0 +1,22 @@
+{
+  "date": "2026-09-08",
+  "url": "https://tricktrace.pages.dev/",
+  "deployment": "https://3f582cac.tricktrace.pages.dev",
+  "bundle": "/assets/index-96U3ReH8.js",
+  "source": "working tree build; not yet committed at deployment time",
+  "tests": {"files": 14, "passed": 268, "ccba": 210},
+  "buildPassed": true,
+  "httpStatus": 200,
+  "coop": "same-origin",
+  "coep": "require-corp",
+  "chrome": {
+    "auction": "1C P 1D P 1H P 3S",
+    "seat": "S",
+    "lengths": {"H": "4", "D": "5+", "S": "0-1"},
+    "auctionPreservedAcrossModes": true,
+    "manualExpression": "aces 1",
+    "manualPreservedOnReturnToLead": true,
+    "crossOriginIsolated": true,
+    "interactionErrors": []
+  }
+}

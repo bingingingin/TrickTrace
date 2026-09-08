@@ -1,10 +1,11 @@
 import {SEATS,SUITS,type Board,type Constraint,type Seat,type Suit} from '../core/types';
 import {auctionCalls,validateConstraints} from './lead-constraints';
 import {extraOpening,extraUncontested,extraIntervention,competitiveResponse,fourthSeat,lebensohl,slamRule,advanceOvercall} from './ccba-extra';
+import {continuations,contestedContinuation,forcingCompetition,escapeContinuation} from './ccba-continuations';
 
 export const CCBA_SOURCE='https://oss.xinruibridge.com/doc/ccba_word_v2.2.zip';
 export const CCBA_VERSION='新睿二盖一（CCBA v2.2）';
-export interface BidMeaning {index:number;seat:Seat;call:string;description:string;section:string;applied:boolean}
+export interface BidMeaning {index:number;seat:Seat;call:string;description:string;section:string;applied:boolean;constrained?:boolean}
 export interface AuctionInference {constraints:Constraint[];meanings:BidMeaning[];error?:string}
 type Bounds=[number,number];
 type Rule={patch:Omit<Constraint,'seat'>;description:string;section:string};
@@ -31,7 +32,7 @@ function opening(call:string,position:number):Rule|undefined {
 // handled by a generic "bid suit = held suit" fallback.
 function uncontested(path:string[],passed:boolean):Rule|undefined {
  if(path[0]==='2C'&&path[1]==='2D'&&path[2]==='2NT'&&path.length>=4)return uncontested(['2NT',...path.slice(3)],false);
- const extra=extraUncontested(path,passed);if(extra)return extra;
+ const extra=extraUncontested(path,passed)??continuations(path,passed);if(extra)return extra;
  const [o,a,b,c,d]=path,s=o.slice(1),m=major(s),bid=path.at(-1)!;
  if(path.length===2){
   if(o==='1NT'||o==='2NT'){
@@ -202,17 +203,28 @@ export function inferCCBA(text:string,dealer:Seat,vulnerability?:Board['vulnerab
   const seat=SEATS[(SEATS.indexOf(dealer)+index)%4];let rule:Rule|undefined;
   if(index===start){path.push(call);rule=opening(call,start)??extraOpening(call);}
   else if(SEATS.indexOf(seat)%2!==side){
-   if(call==='P')return;
+   const enemyPath=[...opponents.map(x=>x.call),call];
+   // A convention continuation requires the partner's immediately preceding
+   // turn. Compressing a passed turn must never reassign a rule to its partner.
+   const alternating=opponents.length>0&&index===opponents.at(-1)!.index+2;
+   const response=calls[start+2];
+   if(alternating&&opponents[0].index===start+1&&
+      (enemyPath.length===2||path.length===1))rule=contestedContinuation(calls[start],opponents[0].call,response,enemyPath);
+   if(call==='P'){
+    if(rule)meanings.push({index,seat,call,description:rule.description,section:rule.section,applied:true,constrained:Object.keys(rule.patch).length>0});
+    if(rule&&Object.keys(rule.patch).length)constraints.set(seat,intersect(constraints.get(seat),seat,rule.patch));
+    return;
+   }
    if(!contested&&path.length===1)rule=intervention(calls[start],call,index-start===3)??extraIntervention(calls[start],call,index-start===3);
-   else if(path.length===1&&opponents.length){
-    if(opponents[0].call==='1NT')rule=uncontested([...opponents.map(x=>x.call),call],false);
-    else if(opponents.length===1&&index===opponents[0].index+2)rule=advanceOvercall(calls[start],opponents[0].call,call);
+   else if(!rule&&path.length===1&&alternating){
+    if(opponents[0].call==='1NT')rule=uncontested(enemyPath,false);
+    else if(opponents.length===1&&response==='P')rule=advanceOvercall(calls[start],opponents[0].call,call);
    }
    opponents.push({call,index});
    contested=true;
   }else if(!contested){
    if(call==='P'){
-    rule=extraUncontested([...path,call],start>=2);
+    rule=extraUncontested([...path,call],start>=2)??continuations([...path,call],start>=2);
     if(!rule)return;
    }else{
    path.push(call);
@@ -225,8 +237,8 @@ export function inferCCBA(text:string,dealer:Seat,vulnerability?:Board['vulnerab
    const enemy=opponents[0];
    if(opponents.length===1){
     if(enemy.index===start+1&&index===start+2)rule=competitiveResponse(calls[start],enemy.call,call);
-    if(enemy.index===start+3&&index===start+4)rule=fourthSeat(calls[start],path[1],enemy.call,call);
-    if(enemy.index===start+1&&index>start+2)rule=lebensohl(calls[start],enemy.call,[...path,call]);
+    if(enemy.index===start+3&&index===start+4)rule=fourthSeat(calls[start],path[1],enemy.call,call)??(start<2?forcingCompetition(calls[start],path[1],call):undefined);
+    if(enemy.index===start+1&&index>start+2)rule=lebensohl(calls[start],enemy.call,[...path,call])??(index===start+4?escapeContinuation(calls[start],enemy.call,[...path,call]):undefined);
    }
    if(call!=='P')path.push(call);
   }
@@ -245,7 +257,7 @@ export function inferCCBA(text:string,dealer:Seat,vulnerability?:Board['vulnerab
     if(/^1[CD]$/.test(calls[start])&&call==='2C')rule={...rule,patch:{...rule.patch,...points(6,vulnerable?11:9),...(vulnerable?{lengths:{H:[5,13],S:[5,13]}}:{})}};
    }
   }
-  if(rule){if(Object.keys(rule.patch).length)constraints.set(seat,intersect(constraints.get(seat),seat,rule.patch));meanings.push({index,seat,call,description:rule.description,section:rule.section,applied:true});}
+  if(rule){if(Object.keys(rule.patch).length)constraints.set(seat,intersect(constraints.get(seat),seat,rule.patch));meanings.push({index,seat,call,description:rule.description,section:rule.section,applied:true,constrained:Object.keys(rule.patch).length>0});}
   else meanings.push({index,seat,call,description:contested?'竞争叫牌后续尚未覆盖，请手动补充；不套用无干扰规则':'此进程尚未覆盖，请手动补充；不会把约定叫当自然套',section:'',applied:false});
  });
  const result={constraints:[...constraints.values()],meanings};

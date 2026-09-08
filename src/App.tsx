@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Upload,
   Plus,
@@ -66,7 +66,7 @@ import { compute, cancelAll } from "./engine/client";
 import { recognize, type Recognition } from "./vision/recognize";
 import CardPicker from "./components/CardPicker";
 import ImageReview from "./components/ImageReview";
-import LeadConstraints from "./components/LeadConstraints";
+import LeadConstraints, {type AuctionDraft} from "./components/LeadConstraints";
 import {twoHandPosition} from "./core/two-hand";
 import type {TwoHandLineResult} from "./engine/two-hand-line";
 import {validateConstraints} from "./engine/lead-constraints";
@@ -189,6 +189,7 @@ export default function App() {
     gen = useRef(0),
     lastCardAt = useRef(0),
     lineAnchor = useRef<HTMLDivElement>(null);
+  const [auctionDrafts,setAuctionDrafts]=useState<Record<string,{source:string;draft:AuctionDraft}>>({});
   const board = store.boards[store.selected],
     session = store.sessions[board.id],
     branch = session?.branches.find((b) => b.id === session.active),
@@ -198,6 +199,12 @@ export default function App() {
     currentSeat = turn(position),
     totalPlayed = position.history.length * 4 + position.current.length,
     baseline = branch?.positions[0] ?? board.position;
+  const auctionSource=board.auction.join(' ');
+  const auctionDraft=useMemo(()=>auctionDrafts[board.id]?.source===auctionSource?auctionDrafts[board.id].draft:{calls:auctionSource,overrides:[]},[auctionDrafts,board.id,auctionSource]);
+  const updateAuctionDraft=(draft:AuctionDraft)=>{
+    setAuctionDrafts(old=>({...old,[board.id]:{source:auctionSource,draft}}));
+    setSample(null);setLeadSample(null);
+  };
   let sampleReadiness='';
   try { twoHandPosition(position); } catch(e) { sampleReadiness=(e as Error).message; }
   const available =
@@ -1373,8 +1380,10 @@ export default function App() {
                         declarer={position.contract.declarer}
                         dealer={board.dealer}
                         auction={board.auction}
+                        draft={auctionDraft}
+                        onDraftChange={updateAuctionDraft}
                         vulnerability={board.vulnerability}
-                        editableSeats={SEATS.filter(s=>side(s)!==side(position.contract.declarer))}
+                        editableSeats={[...SEATS]}
                         auctionLabel="两家牌分析叫牌"
                         onValidityChange={setSampleInputValid}
                         onChange={cs=>{setSampleConstraints(cs);setSample(null);}}
@@ -1474,7 +1483,7 @@ export default function App() {
                       </label>
                     </div>
                   </div>
-                  <fieldset disabled={!!busy} className="lead-config"><LeadConstraints key={board.id} leader={board.position.leader} declarer={board.position.contract.declarer} dealer={board.dealer} auction={board.auction} vulnerability={board.vulnerability} onValidityChange={setLeadInputValid} onChange={cs=>{setLeadConstraints(cs);setLeadSample(null);}} /></fieldset>
+                  <fieldset disabled={!!busy} className="lead-config"><LeadConstraints key={board.id} leader={board.position.leader} declarer={board.position.contract.declarer} dealer={board.dealer} auction={board.auction} draft={auctionDraft} onDraftChange={updateAuctionDraft} vulnerability={board.vulnerability} editableSeats={[...SEATS]} onValidityChange={setLeadInputValid} onChange={cs=>{setLeadConstraints(cs);setLeadSample(null);}} /></fieldset>
                   <label>求解模式
                     <select aria-label="首攻求解模式" disabled={!!busy} value={leadMode} onChange={e=>{setLeadMode(e.target.value as 'beat'|'exact');setLeadSample(null);}}>
                       <option value="beat">快速 · 仅击败率</option>

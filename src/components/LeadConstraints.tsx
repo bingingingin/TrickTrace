@@ -4,6 +4,8 @@ import {range,validateConstraints,auctionCalls,normalizeAuction} from '../engine
 import {inferCCBA,applyOverrides,CCBA_VERSION,CCBA_SOURCE} from '../engine/ccba';
 import {next} from '../core/cards';
 
+export interface AuctionDraft {calls:string;overrides:Constraint[]}
+
 function RangeField({label,value,max,onChange,onError}:{label:string;value:[number,number];max:number;onChange:(r:[number,number])=>void;onError:(e:string)=>void}){
  const format=(r:[number,number])=>r[0]===0&&r[1]===max?'':r[0]===r[1]?String(r[0]):r[1]===max?`${r[0]}+`:`${r[0]}-${r[1]}`;
  const [draft,setDraft]=useState(format(value)),[error,setError]=useState('');
@@ -12,15 +14,19 @@ function RangeField({label,value,max,onChange,onError}:{label:string;value:[numb
   try{const r=range(draft,max);setError('');onError('');if(r[0]!==value[0]||r[1]!==value[1])onChange(r);}catch(x){const message=(x as Error).message;setError(message);onError(message);}
  }}/>{error&&<small role="alert">{error}</small>}</label>;
 }
-export default function LeadConstraints({leader,declarer,dealer,auction,vulnerability,editableSeats,onChange,onValidityChange,auctionLabel='首攻分析叫牌'}:{leader?:Seat;declarer:Seat;dealer:Seat;auction:string[];vulnerability:Board['vulnerability'];editableSeats?:Seat[];onChange:(cs:Constraint[])=>void;onValidityChange:(ok:boolean)=>void;auctionLabel?:string}){
+export default function LeadConstraints({leader,declarer,dealer,auction,vulnerability,editableSeats,draft,onDraftChange,onChange,onValidityChange,auctionLabel='首攻分析叫牌'}:{leader?:Seat;declarer:Seat;dealer:Seat;auction:string[];vulnerability:Board['vulnerability'];editableSeats?:Seat[];draft?:AuctionDraft;onDraftChange?:(draft:AuctionDraft)=>void;onChange:(cs:Constraint[])=>void;onValidityChange:(ok:boolean)=>void;auctionLabel?:string}){
  const selectable=editableSeats??SEATS.filter(s=>s!==leader);
  const initialSeat=selectable.includes(declarer)?declarer:(selectable[0]??declarer);
- const [calls,setCalls]=useState(auction.join(' ')),[overrides,setOverrides]=useState<Constraint[]>([]),[seat,setSeat]=useState<Seat>(initialSeat),[level,setLevel]=useState(1),[fieldErrors,setFieldErrors]=useState<Record<string,string>>({});
+ const [local,setLocal]=useState<AuctionDraft>({calls:auction.join(' '),overrides:[]}),[seat,setSeat]=useState<Seat>(initialSeat),[level,setLevel]=useState(1),[fieldErrors,setFieldErrors]=useState<Record<string,string>>({});
+ const {calls,overrides}=draft??local;
+ const save=(next:AuctionDraft)=>{if(onDraftChange)onDraftChange(next);else setLocal(next);};
+ const setCalls=(calls:string)=>save({calls,overrides});
+ const setOverrides=(update:Constraint[]|((old:Constraint[])=>Constraint[]))=>save({calls,overrides:typeof update==='function'?update(overrides):update});
  const inference=useMemo(()=>inferCCBA(calls,dealer,vulnerability),[calls,dealer,vulnerability]);
  const value=useMemo(()=>applyOverrides(inference.constraints,overrides),[inference,overrides]);
  const changeRef=useRef(onChange);changeRef.current=onChange;
  useEffect(()=>changeRef.current(value),[value]);
- useEffect(()=>setCalls(auction.join(' ')),[auction.join(' ')]);
+ useEffect(()=>{if(!draft)setLocal({calls:auction.join(' '),overrides:[]});},[auction.join(' ')]);
  useEffect(()=>{if(!selectable.includes(seat)&&selectable.length){setSeat(selectable[0]);setFieldErrors({});}},[selectable.join(','),seat]);
  const update=(s:Seat,patch:Partial<Constraint>)=>setOverrides(old=>{const prior=old.find(c=>c.seat===s);return [...old.filter(c=>c.seat!==s),{...prior,seat:s,...patch,...(patch.lengths?{lengths:{...prior?.lengths,...patch.lengths}}:{})}];});
  let validation='';try{validateConstraints(value);}catch(e){validation=(e as Error).message;}
@@ -46,6 +52,8 @@ export default function LeadConstraints({leader,declarer,dealer,auction,vulnerab
   <label>粘贴 / 编辑叫牌<textarea rows={2} aria-label={auctionLabel} value={calls} onChange={e=>setCalls(e.target.value)} placeholder="P P 1NT P 3NT P P P"/></label>
   <p className="ccba-status">{CCBA_VERSION} · 自动联动 · {vulnerability==='None'?'双方无局':vulnerability==='All'?'双方有局':vulnerability==='NS'?'南北有局':'东西有局'}</p>
   <p className="hint">每次叫牌改动会重算下方条件；手动覆盖会保留。不修改当前定约，不根据“不叫”硬设点力上限。</p>
+  {draft&&<p className="hint">首攻与两家牌共用当前叫牌及手动条件，切换分析时保留；刷新页面后恢复牌谱叫牌。</p>}
+  {!!inference.meanings.length&&<p className="hint">已转为手牌条件 {inference.meanings.filter(m=>m.constrained).length} 项 · 仅解释 {inference.meanings.filter(m=>m.applied&&!m.constrained).length} 项 · 待补充 {inference.meanings.filter(m=>!m.applied).length} 项</p>}
   {inference.meanings.some(m=>!m.applied)&&<p className="constraint-warning">有 {inference.meanings.filter(m=>!m.applied).length} 个叫品尚未覆盖，请展开说明并手动补充。</p>}
   <details className="ccba-meanings"><summary>叫牌解释与规则来源（{inference.meanings.length} 项）</summary>
    {inference.meanings.map(m=><p key={m.index}><b>{m.index+1}. {LABEL[m.seat]} {m.call}</b> · {m.description}{m.section&&<small>体系说明 §{m.section}</small>}</p>)}
