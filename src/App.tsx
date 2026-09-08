@@ -67,6 +67,7 @@ import { recognize, type Recognition } from "./vision/recognize";
 import CardPicker from "./components/CardPicker";
 import ImageReview from "./components/ImageReview";
 import LeadConstraints from "./components/LeadConstraints";
+import {twoHandPosition} from "./core/two-hand";
 import {validateConstraints} from "./engine/lead-constraints";
 import { chooseOptimal } from "./engine/line-policy";
 import { getTable, tableKey, canCalculateTable } from "./engine/table-client";
@@ -196,6 +197,8 @@ export default function App() {
     currentSeat = turn(position),
     totalPlayed = position.history.length * 4 + position.current.length,
     baseline = branch?.positions[0] ?? board.position;
+  let sampleReadiness='';
+  try { twoHandPosition(position); } catch(e) { sampleReadiness=(e as Error).message; }
   const available =
     full && !errors.length && remainingTricks(position)
       ? legalCards(position)
@@ -1327,7 +1330,7 @@ export default function App() {
                   <span className="experiment-label">EXPERIMENTAL</span>
                   <h3>看得见的牌，合理的推测</h3>
                   <p>
-                    按未知分布采样，给出当前选择的估计。它不是全知条件下的必胜路线。
+                    按已选首攻和当前出牌记录，在后台保留庄家、明手，按约束模拟两家防守牌。临时数据仅用于计算，不新增牌例，牌桌仍显示原来的四家牌。
                   </p>
                   <div className="sample-fields">
                     <label>
@@ -1370,7 +1373,7 @@ export default function App() {
                         dealer={board.dealer}
                         auction={board.auction}
                         vulnerability={board.vulnerability}
-                        editableSeats={SEATS.filter(s=>position.hands[s]===null)}
+                        editableSeats={SEATS.filter(s=>side(s)!==side(position.contract.declarer))}
                         auctionLabel="两家牌分析叫牌"
                         onValidityChange={setSampleInputValid}
                         onChange={cs=>{setSampleConstraints(cs);setSample(null);}}
@@ -1379,7 +1382,7 @@ export default function App() {
                   </details>
                   <button
                     className="primary"
-                    disabled={full || !!busy || !sampleInputValid}
+                    disabled={!!sampleReadiness || !!busy || !sampleInputValid || errors.length>0}
                     onClick={() => {
                       try {
                         validateConstraints(sampleConstraints);
@@ -1396,9 +1399,9 @@ export default function App() {
                   >
                     分析当前最佳选择
                   </button>
-                  {full && (
+                  {sampleReadiness && (
                     <p className="hint">
-                      在「编辑牌局」中将两家手牌设为 ? 即可使用。
+                      {sampleReadiness}
                     </p>
                   )}
                   {sample && (
@@ -1851,7 +1854,7 @@ export default function App() {
                 点击牌桌下方按钮，展开完整样例；放到牌桌后可逐张回放、回退并探索分支。
               </li>
               <li>
-                只知道两家牌时使用实验分析。录入实际出牌以更新未知分布；残局须提供完整已出牌信息。
+                两家牌分析先选择首攻，自动在临时副本中保留庄家和明手、模拟防守牌。牌桌保留四家显示，按实际出牌继续更新分析；残局须提供完整已出牌信息。
               </li>
               <li>
                 保存项目 JSON 可保留分支和进度；导出 PBN 适合交换完整初始牌局。
