@@ -36,6 +36,15 @@ try {
   await page.getByRole('button',{name:'撤销',exact:true}).click();
   await page.getByRole('button',{name:'撤销',exact:true}).click();
   await page.waitForFunction(()=>document.querySelector('input[aria-label="S ♠ 张数"]')?.value==='');
+  await page.getByLabel('首攻分析叫牌').fill('1H 2NT 3D');
+  await page.waitForFunction(()=>document.querySelector('input[aria-label="S ♠ 张数"]')?.value==='5+');
+  assert.equal(await page.getByLabel('S ♦ 张数',{exact:true}).inputValue(),'');
+  await page.getByLabel('首攻分析叫牌').fill('1NT 2H 2NT P 3C P 3NT');
+  await page.waitForFunction(()=>document.querySelector('input[aria-label="S ♠ 张数"]')?.value==='0-3');
+  assert.equal(await page.getByLabel('S ♥ 张数',{exact:true}).inputValue(),'0-3');
+  await page.getByLabel('首攻分析叫牌').fill('1H X 1NT');
+  await page.waitForFunction(()=>document.querySelector('input[aria-label="S ♥ 张数"]')?.value==='3-4');
+  assert.ok((await page.getByLabel('S 牌型与牌张条件').inputValue()).includes('AND'));
   await page.getByLabel('首攻分析叫牌').fill('1S P 1H');
   await page.waitForFunction(()=>[...document.querySelectorAll('button')].find(b=>b.textContent==='开始首攻分析')?.disabled);
   await page.getByLabel('首攻分析叫牌').fill('P P 1NT P 3NT P P P');
@@ -136,6 +145,7 @@ try {
   const report = {
     url,
     passed: true,
+    ccbaCompetitiveLink: true,
     samples: sampleCount,
     elapsedMs,
     mode,

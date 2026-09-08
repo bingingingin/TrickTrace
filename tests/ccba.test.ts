@@ -51,7 +51,7 @@ describe('official Xinrui CCBA v2.2 inference',()=>{
  });
  it('does not confuse puppet Stayman and ordinary Stayman',()=>{
   expect(hand(['2NT','3C','3H'])?.lengths?.H).toEqual([5,5]);
-  expect(hand(['2NT','3C','3D'])?.expression).toBe('h 4 OR s 4');
+  expect(hand(['2NT','3C','3D'])?.expression).toContain('h 4 OR s 4');
   expect(hand(['2NT','3C','3D','3H'],'S')?.lengths?.S).toEqual([4,4]);
  });
  it('recomputes without stale conditions on undo or clearing and validates all calls',()=>{
@@ -65,7 +65,7 @@ describe('official Xinrui CCBA v2.2 inference',()=>{
  it('supports direct/balancing NT overcalls and prevents unopposed inference after interference',()=>{
   expect(inferCCBA('1C 1NT','N').constraints.find(c=>c.seat==='E')).toMatchObject({minHcp:15,maxHcp:18});
   expect(inferCCBA('1C P P 1NT','N').constraints.find(c=>c.seat==='W')).toMatchObject({minHcp:12,maxHcp:15});
-  const r=inferCCBA('1S 2C 2NT','N');expect(r.constraints.find(c=>c.seat==='S')).toBeUndefined();expect(r.meanings.at(-1)?.applied).toBe(false);
+  const r=inferCCBA('1S 2C 2NT','N');expect(r.constraints.find(c=>c.seat==='S')).toBeUndefined();expect(r.meanings.at(-1)?.description).toContain('自然邀请');
  });
  it('does not translate adjusted points into HCP or cue bids into natural suit lengths',()=>{
   expect(inferCCBA('1H 2H','N').constraints.find(c=>c.seat==='E')).toMatchObject({lengths:{S:[5,13]},expression:'c 5+ OR d 5+'});

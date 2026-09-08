@@ -1,5 +1,5 @@
 import {useEffect,useState,useMemo,useRef} from 'react';
-import {LABEL, SEATS, SUITS, SYMBOL, type Constraint, type Seat} from '../core/types';
+import {LABEL, SEATS, SUITS, SYMBOL, type Board, type Constraint, type Seat} from '../core/types';
 import {range,validateConstraints,auctionCalls,normalizeAuction} from '../engine/lead-constraints';
 import {inferCCBA,applyOverrides,CCBA_VERSION,CCBA_SOURCE} from '../engine/ccba';
 import {next} from '../core/cards';
@@ -12,9 +12,9 @@ function RangeField({label,value,max,onChange,onError}:{label:string;value:[numb
   try{const r=range(draft,max);setError('');onError('');if(r[0]!==value[0]||r[1]!==value[1])onChange(r);}catch(x){const message=(x as Error).message;setError(message);onError(message);}
  }}/>{error&&<small role="alert">{error}</small>}</label>;
 }
-export default function LeadConstraints({leader,declarer,dealer,auction,onChange,onValidityChange}:{leader:Seat;declarer:Seat;dealer:Seat;auction:string[];onChange:(cs:Constraint[])=>void;onValidityChange:(ok:boolean)=>void}){
+export default function LeadConstraints({leader,declarer,dealer,auction,vulnerability,onChange,onValidityChange}:{leader:Seat;declarer:Seat;dealer:Seat;auction:string[];vulnerability:Board['vulnerability'];onChange:(cs:Constraint[])=>void;onValidityChange:(ok:boolean)=>void}){
  const [calls,setCalls]=useState(auction.join(' ')),[overrides,setOverrides]=useState<Constraint[]>([]),[seat,setSeat]=useState<Seat>(declarer),[level,setLevel]=useState(1),[fieldErrors,setFieldErrors]=useState<Record<string,string>>({});
- const inference=useMemo(()=>inferCCBA(calls,dealer),[calls,dealer]);
+ const inference=useMemo(()=>inferCCBA(calls,dealer,vulnerability),[calls,dealer,vulnerability]);
  const value=useMemo(()=>applyOverrides(inference.constraints,overrides),[inference,overrides]);
  const changeRef=useRef(onChange);changeRef.current=onChange;
  useEffect(()=>changeRef.current(value),[value]);
@@ -41,7 +41,7 @@ export default function LeadConstraints({leader,declarer,dealer,auction,onChange
   <div className="constraint-presets">{['C','D','H','S','NT'].map(s=><button key={s} disabled={!canAdd(`${level}${s}`)} onClick={()=>add(`${level}${s}`)}>{level}{s==='NT'?'NT':SYMBOL[s as keyof typeof SYMBOL]}</button>)}</div>
   <div className="constraint-presets">{[['P','不叫'],['X','加倍'],['XX','再加倍']].map(([t,label])=><button key={t} disabled={!canAdd(t)} onClick={()=>add(t)}>{label}</button>)}<button disabled={!tokens.length} onClick={()=>setCalls(tokens.slice(0,-1).join(' '))}>撤销</button><button disabled={!tokens.length} onClick={()=>setCalls('')}>清空叫牌</button></div>
   <label>粘贴 / 编辑叫牌<textarea rows={2} aria-label="首攻分析叫牌" value={calls} onChange={e=>setCalls(e.target.value)} placeholder="P P 1NT P 3NT P P P"/></label>
-  <p className="ccba-status">{CCBA_VERSION} · 自动联动</p>
+  <p className="ccba-status">{CCBA_VERSION} · 自动联动 · {vulnerability==='None'?'双方无局':vulnerability==='All'?'双方有局':vulnerability==='NS'?'南北有局':'东西有局'}</p>
   <p className="hint">每次叫牌改动会重算下方条件；手动覆盖会保留。不修改当前定约，不根据“不叫”硬设点力上限。</p>
   {inference.meanings.some(m=>!m.applied)&&<p className="constraint-warning">有 {inference.meanings.filter(m=>!m.applied).length} 个叫品尚未覆盖，请展开说明并手动补充。</p>}
   <details className="ccba-meanings"><summary>叫牌解释与规则来源（{inference.meanings.length} 项）</summary>
@@ -56,7 +56,7 @@ export default function LeadConstraints({leader,declarer,dealer,auction,onChange
    <p className="hint">空白不限；可填 12-17、5+ 或精确数值，离开输入框后应用。</p>
    <div className="constraint-ranges">{SUITS.map(s=><RangeField key={s} label={`${seat} ${SYMBOL[s]} 张数`} value={c.lengths?.[s]??[0,13]} max={13} onError={fieldError(s)} onChange={r=>update(seat,{lengths:{[s]:r}})}/>)}</div>
    <div className="constraint-presets">{[['balanced','均型'],['shape 4432 5332','4432 / 5332'],['s 5+ OR h 5+','至少五张高花']].map(([t,label])=><button key={t} aria-pressed={(c.expression??'').split(',').map(x=>x.trim()).includes(t)} onClick={()=>toggle(t)}>{label}</button>)}</div>
-   <details><summary>高级条件：指定牌张、花色点力</summary><textarea aria-label={`${seat} 牌型与牌张条件`} value={c.expression??''} onChange={e=>update(seat,{expression:e.target.value})} placeholder="例如 s AK, no clubs Q"/><p>逗号表示同时满足，OR 表示任选。支持 balanced（均型）、s AK（有 ♠AK）、no clubs Q（无 ♣Q）、clubs hcp 5+（♣ 点力至少 5）。</p></details>
+   <details><summary>高级条件：牌型、关键张与控制</summary><textarea aria-label={`${seat} 牌型与牌张条件`} value={c.expression??''} onChange={e=>update(seat,{expression:e.target.value})} placeholder="例如 s AK, no clubs Q"/><p>逗号或 AND 表示同时满足，OR 表示任选，括号保留分支。支持 balanced（均型）、s AK、no clubs Q、clubs hcp 5+；keys s 2 表示黑桃为将的两个关键张，aces 1 表示一个 A，controls 3+ 表示至少三控制（A=2、K=1）。这些条件会实际筛选模拟手牌。</p></details>
    <div className="constraint-presets"><button onClick={()=>{setOverrides(old=>old.filter(x=>x.seat!==seat));setFieldErrors({});}}>恢复{LABEL[seat]}家推断</button><button onClick={()=>{update(seat,{minHcp:0,maxHcp:37,lengths:{S:[0,13],H:[0,13],D:[0,13],C:[0,13]},expression:''});setFieldErrors({});}}>本家设为不限</button></div>
   </div>
   <RangeField label="庄明联手点力" value={value.find(c=>c.seat===declarer)?.partnershipHcp??[0,40]} max={40} onError={fieldError('partnership')} onChange={r=>update(declarer,{partnershipHcp:r})}/>

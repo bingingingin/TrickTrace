@@ -1,5 +1,6 @@
-import {SEATS,SUITS,type Constraint,type Seat,type Suit} from '../core/types';
+import {SEATS,SUITS,type Board,type Constraint,type Seat,type Suit} from '../core/types';
 import {auctionCalls,validateConstraints} from './lead-constraints';
+import {extraOpening,extraUncontested,extraIntervention,competitiveResponse,fourthSeat,lebensohl,slamRule,advanceOvercall} from './ccba-extra';
 
 export const CCBA_SOURCE='https://oss.xinruibridge.com/doc/ccba_word_v2.2.zip';
 export const CCBA_VERSION='新睿二盖一（CCBA v2.2）';
@@ -18,7 +19,7 @@ const noMajor={H:[0,3],S:[0,3]} as Record<Suit,Bounds>;
 function opening(call:string,position:number):Rule|undefined {
  const s=call.slice(1);
  if(call==='1NT')return r('15–17 点；允许五张高花、六张低花和部分 5422，不强套普通均型筛选','3',{...points(15,17),lengths:ntLengths});
- if(call==='2NT')return r('20–21 点，五张套可低至 19；保留 19 点例外，不强套普通均型筛选','6',{...points(19,21),lengths:ntLengths});
+ if(call==='2NT')return r('20–21 点；19 点必须有五张以上套，不强套普通均型筛选','6',{...points(19,21),lengths:ntLengths,expression:'hcp 20+ OR s 5+ OR h 5+ OR d 5+ OR c 5+'});
  if(/^1[CD]$/.test(call))return r('12–21 点，至少三张所叫低花','1',{...points(12,21),...len(s,3)});
  if(/^1[HS]$/.test(call))return r(position===2?'第三家可轻开叫：至少五张高花，不硬设点力下限':'11–21 点，至少五张高花','2',{...points(position===2?0:11,21),...len(s,5)});
  if(call==='2C')return r('强开叫：非均型可以低于 22 点；仅取各分支共同下限 18，赢墩条件需核对','4',points(18));
@@ -29,6 +30,8 @@ function opening(call:string,position:number):Rule|undefined {
 // Only explicitly matched sequences are interpreted. Artificial bids are never
 // handled by a generic "bid suit = held suit" fallback.
 function uncontested(path:string[],passed:boolean):Rule|undefined {
+ if(path[0]==='2C'&&path[1]==='2D'&&path[2]==='2NT'&&path.length>=4)return uncontested(['2NT',...path.slice(3)],false);
+ const extra=extraUncontested(path,passed);if(extra)return extra;
  const [o,a,b,c,d]=path,s=o.slice(1),m=major(s),bid=path.at(-1)!;
  if(path.length===2){
   if(o==='1NT'||o==='2NT'){
@@ -61,7 +64,7 @@ function uncontested(path:string[],passed:boolean):Rule|undefined {
   }
   if(/^1[HS]$/.test(o)){
    if(passed){
-    if(a==='2C')return r('逆朱瑞：至少三张将牌支持，不表示梅花；好 8/9 点取宽下限','2.7',{...points(8),...len(s,3)});
+    if(a==='2C')return r('逆朱瑞：三张支持好 9+，或四张以上好 8+ 且至少两控制','2.7',{...points(8),...len(s,3),expression:`(${s} 3 AND hcp 9+) OR (${s} 4+ AND hcp 8+ AND controls 2+)`});
     if(a==='1NT')return r('已不叫方的 1NT：6–11 点，不逼叫','2.7',points(6,11));
     if(o==='1H'&&a==='1S')return r('已不叫方一黑桃：6–11 点、四张黑桃、无三张红心','2.7',{...points(6,11),lengths:{S:[4,13],H:[0,2]}});
     if(a==='2D'||a==='3C')return r('已不叫方自然邀请：9–11 点，六张以上套','2.7',{...points(9,11),...len(a[1],6)});
@@ -76,7 +79,7 @@ function uncontested(path:string[],passed:boolean):Rule|undefined {
    if(a==='2NT')return r('杰可贝 2NT：13+ 点、四张以上将牌支持；不是自然无将','2.1',{...points(13),...len(s,4)});
    if(a==='3C'||a==='3D')return r('伯根加叫：四张以上将牌支持；不表示所叫低花套','2.1 / 2.6',{...points(a==='3C'?7:9,a==='3C'?9:12),...len(s,4)});
    if(a===`3${s}`)return r('阻击性跳加叫：四张以上支持，点力随局况/牌型变化，不硬设上限','2.6',len(s,4));
-   if(a===`3${other(s)}`)return r('Mini-Splinter：10–12 HCP、四张以上支持；所叫不是自然套，短门未确定','2.1', {...points(10,12),...len(s,4)});
+   if(a===`3${other(s)}`)return r('Mini-Splinter：10–12 HCP、四张以上支持；至少一门边花单缺，具体短门未确定','2.1', {...points(10,12),...len(s,4),expression:SUITS.filter(x=>x!==s).map(x=>`${x} 0-1`).join(' OR ')});
    if(a==='3NT'||a==='4C'||a==='4D')return r('Splinter：13–15 HCP、四张以上将牌、所示花色单缺','2.1',{...points(13,15),lengths:{[s]:[4,13],[a==='3NT'?other(s):a[1]]:[0,1]}});
   }
  }
@@ -124,7 +127,7 @@ function uncontested(path:string[],passed:boolean):Rule|undefined {
   if(/^1[HS]$/.test(o)&&a==='2NT'&&!passed){
    if(/^3[CDHS]$/.test(b)&&b[1]!==s)return r('杰可贝后显示单缺，不表示第二长套','2.5',len(b[1],0,1));
    if(b===`3${s}`)return r('杰可贝后高限：16+ 点、无单缺','2.5',{...points(16),lengths:{S:[2,13],H:[2,13],D:[2,13],C:[2,13]}});
-   if(b==='3NT')return r('杰可贝后 3NT 有点力或控制两种分支，只约束无单缺','2.5',{lengths:{S:[2,13],H:[2,13],D:[2,13],C:[2,13]}});
+   if(b==='3NT')return r('杰可贝后 3NT：14–15 点或至少四控制，无单缺','2.5',{lengths:{S:[2,13],H:[2,13],D:[2,13],C:[2,13]},expression:'hcp 14-15 OR controls 4+'});
   }
   if(/^1[HS]$/.test(o)&&['2C','2D',...(o==='1S'?['2H']:[])].includes(a)&&!passed){
    if(b==='2NT')return r('二盖一后再叫 2NT：14+ 点，允许部分非典型均型牌','2.4',points(14));
@@ -186,21 +189,62 @@ function intersect(old:Constraint|undefined,seat:Seat,patch:Rule['patch']):Const
  if(patch.expression)out.expression=[old?.expression,patch.expression].filter(Boolean).join(', ');
  return out;
 }
-export function inferCCBA(text:string,dealer:Seat):AuctionInference{
+export function inferCCBA(text:string,dealer:Seat,vulnerability?:Board['vulnerability']):AuctionInference{
  if(!text.trim())return {constraints:[],meanings:[]};
  let calls:string[];try{calls=auctionCalls(text,dealer);}catch(e){return {constraints:[],meanings:[],error:(e as Error).message};}
  const constraints=new Map<Seat,Constraint>(),meanings:BidMeaning[]=[];
  const start=calls.findIndex(c=>c!=='P');if(start<0)return {constraints:[],meanings:[]};
  const opener=SEATS[(SEATS.indexOf(dealer)+start)%4],side=SEATS.indexOf(opener)%2;
  const path:string[]=[];let contested=false;
+ const opponents:{call:string;index:number}[]=[];
  calls.forEach((call,index)=>{
-  if(call==='P')return;
+  if(index<start)return;
   const seat=SEATS[(SEATS.indexOf(dealer)+index)%4];let rule:Rule|undefined;
-  if(index===start){path.push(call);rule=opening(call,start);}
+  if(index===start){path.push(call);rule=opening(call,start)??extraOpening(call);}
   else if(SEATS.indexOf(seat)%2!==side){
-   if(!contested&&path.length===1)rule=intervention(calls[start],call,index-start===3);
+   if(call==='P')return;
+   if(!contested&&path.length===1)rule=intervention(calls[start],call,index-start===3)??extraIntervention(calls[start],call,index-start===3);
+   else if(path.length===1&&opponents.length){
+    if(opponents[0].call==='1NT')rule=uncontested([...opponents.map(x=>x.call),call],false);
+    else if(opponents.length===1&&index===opponents[0].index+2)rule=advanceOvercall(calls[start],opponents[0].call,call);
+   }
+   opponents.push({call,index});
    contested=true;
-  }else if(!contested){path.push(call);rule=uncontested(path,start>=2);}
+  }else if(!contested){
+   if(call==='P'){
+    rule=extraUncontested([...path,call],start>=2);
+    if(!rule)return;
+   }else{
+   path.push(call);
+   const partner=SEATS[(SEATS.indexOf(seat)+2)%4];
+   const fits=SUITS.filter(s=>(constraints.get(seat)?.lengths?.[s]?.[0]??0)>=3&&(constraints.get(partner)?.lengths?.[s]?.[0]??0)>=3&&(constraints.get(seat)!.lengths![s]![0]+constraints.get(partner)!.lengths![s]![0])>=8);
+   const fit=fits.length===1?fits[0]:undefined;
+   rule=uncontested(path,start>=2)??slamRule(path,fit,fit?(constraints.get(seat)!.lengths![fit]![0]+constraints.get(partner)!.lengths![fit]![0]):0);
+   }
+  }else{
+   const enemy=opponents[0];
+   if(opponents.length===1){
+    if(enemy.index===start+1&&index===start+2)rule=competitiveResponse(calls[start],enemy.call,call);
+    if(enemy.index===start+3&&index===start+4)rule=fourthSeat(calls[start],path[1],enemy.call,call);
+    if(enemy.index===start+1&&index>start+2)rule=lebensohl(calls[start],enemy.call,[...path,call]);
+   }
+   if(call!=='P')path.push(call);
+  }
+  if(call==='P'&&!rule)return;
+  if(rule&&vulnerability!==undefined){
+   const vulnerable=vulnerability==='All'||vulnerability===(SEATS.indexOf(seat)%2===0?'NS':'EW');
+   // Apply only at the exact auction role, never by bid name alone.
+   if(!contested&&start<2&&path.length===2&&/^1[HS]$/.test(path[0])){
+    if(call==='3D')rule={...rule,description:rule.description+`；${vulnerable?'有局 11–12':'无局 9–12'} HCP`,patch:{...rule.patch,...points(vulnerable?11:9,12)}};
+    if(call===`3${path[0][1]}`&&!vulnerable)rule={...rule,description:rule.description+'；无局 3–6 HCP',patch:{...rule.patch,...points(3,6)}};
+   }
+   if(index===start+1&&calls[start]==='1NT'&&call==='2NT')rule={...rule,description:`特殊无将：55 双低，${vulnerable?'有局 14+':'无局 12+'} HCP`,patch:{...rule.patch,...points(vulnerable?14:12)}};
+   if(index===start+1&&calls[start]==='1NT'&&/^3[CDHS]$/.test(call))rule={...rule,patch:{...rule.patch,...{lengths:{[call[1]]:[vulnerable?7:6,13]}}}};
+   if(index===start+2&&calls[start+1]==='1NT'){
+    if(/^1[HS]$/.test(calls[start])&&(call==='2C'||call==='2D'))rule={...rule,patch:{...rule.patch,...points(vulnerable?8:6,vulnerable?10:9)}};
+    if(/^1[CD]$/.test(calls[start])&&call==='2C')rule={...rule,patch:{...rule.patch,...points(6,vulnerable?11:9),...(vulnerable?{lengths:{H:[5,13],S:[5,13]}}:{})}};
+   }
+  }
   if(rule){if(Object.keys(rule.patch).length)constraints.set(seat,intersect(constraints.get(seat),seat,rule.patch));meanings.push({index,seat,call,description:rule.description,section:rule.section,applied:true});}
   else meanings.push({index,seat,call,description:contested?'竞争叫牌后续尚未覆盖，请手动补充；不套用无干扰规则':'此进程尚未覆盖，请手动补充；不会把约定叫当自然套',section:'',applied:false});
  });

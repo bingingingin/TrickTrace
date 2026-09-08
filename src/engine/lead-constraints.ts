@@ -13,8 +13,32 @@ export function range(text: string, max: number): [number, number] {
 }
 const inside = (n: number, r: [number, number]) => n >= r[0] && n <= r[1];
 export function compileExpression(text: string): (hand: Card[]) => boolean {
+  // Parenthesized alternatives retain the association between strength and shape.
+  // Split only at depth zero so generated system rules use the same predicates
+  // as manually entered constraints and the worker's actual deal filter.
+  const input=text.trim();
+  if(input.length>10000)throw Error('条件表达式过长');
+  const split=(value:string,separator:RegExp)=>{
+    let depth=0,start=0;const parts:string[]=[];
+    for(let i=0;i<value.length;i++){
+      if(value[i]==='('){if(++depth>20)throw Error('条件嵌套过深');}
+      else if(value[i]===')'){if(--depth<0)throw Error('条件括号不匹配');}
+      if(!depth){const match=separator.exec(value.slice(i));if(match){parts.push(value.slice(start,i));i+=match[0].length-1;start=i+1;}}
+    }
+    if(depth)throw Error('条件括号不匹配');
+    parts.push(value.slice(start));return parts;
+  };
+  const conjunction=split(input,/^(?:[,，;；\n]+|\s+AND\s+)/i);
+  if(conjunction.length>1){const tests=conjunction.filter(s=>s.trim()).map(compileExpression);return h=>tests.every(t=>t(h));}
+  const alternatives=split(input,/^\s+OR\s+/i);
+  if(alternatives.length>1){if(alternatives.some(s=>!s.trim()))throw Error('OR 两侧需要条件');const tests=alternatives.map(compileExpression);return h=>tests.some(t=>t(h));}
+  if(input.startsWith('(')&&input.endsWith(')'))return compileExpression(input.slice(1,-1));
   const clauses = text.trim().toLowerCase().split(/[,，;；\n]+/).filter(x => x.trim()).map(clause => clause.split(/\s+or\s+/i).map(raw => {
     const t = raw.trim();
+    const control=/^controls\s+(.+)$/.exec(t);
+    if(control){const bounds=range(control[1],12);return(h:Card[])=>inside(h.reduce((n,c)=>n+(rank(c)===14?2:rank(c)===13?1:0),0),bounds);}
+    const count=/^(?:keys\s+([shdc])|aces|cards\s+((?:[shdc][akqjt2-9]\s+)*[shdc][akqjt2-9]))\s+(\d+(?:-\d+|\+)?)$/.exec(t);
+    if(count){const cards=count[1]?['SA','HA','DA','CA',`${count[1].toUpperCase()}K`]:count[2]?count[2].toUpperCase().split(/\s+/):['SA','HA','DA','CA'];if(new Set(cards).size!==cards.length)throw Error('计数牌张不能重复');const bounds=range(count[3],cards.length);return(h:Card[])=>inside(cards.filter(c=>h.includes(c as Card)).length,bounds);}
     if (t === 'balanced' || t === '均型') return (h: Card[]) => ['4333','4432','5332'].includes(SUITS.map(s=>h.filter(c=>suit(c)===s).length).sort((a,b)=>b-a).join(''));
     let m = /^hcp\s+(.+)$/.exec(t);
     if (m) {const r=range(m[1],37); return (h:Card[])=>inside(hcp(h),r);}
