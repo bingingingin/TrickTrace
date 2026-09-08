@@ -68,6 +68,7 @@ import CardPicker from "./components/CardPicker";
 import ImageReview from "./components/ImageReview";
 import LeadConstraints from "./components/LeadConstraints";
 import {twoHandPosition} from "./core/two-hand";
+import type {TwoHandLineResult} from "./engine/two-hand-line";
 import {validateConstraints} from "./engine/lead-constraints";
 import { chooseOptimal } from "./engine/line-policy";
 import { getTable, tableKey, canCalculateTable } from "./engine/table-client";
@@ -169,7 +170,7 @@ export default function App() {
     [help, setHelp] = useState(false),
     [paste, setPaste] = useState(false),
     [pasteText, setPasteText] = useState(""),
-    [sample, setSample] = useState<SampleResult | null>(null),
+    [sample, setSample] = useState<TwoHandLineResult | null>(null),
     [leadSample, setLeadSample] = useState<import('./engine/lead-pool').LeadResult | null>(null),
     [leadMode, setLeadMode] = useState<'beat'|'exact'>('beat'),
     [leadInputValid, setLeadInputValid] = useState(true),
@@ -283,7 +284,7 @@ export default function App() {
         method,
         args,
         setProgress,
-        method === "openingLead" ? 1800000 : method === "sample" ? 300000 : 180000,
+        method === "openingLead" || method === "twoHandLine" ? 1800000 : method === "sample" ? 300000 : 180000,
       );
       if (id === gen.current) apply(r);
     } catch (e) {
@@ -1387,8 +1388,8 @@ export default function App() {
                       try {
                         validateConstraints(sampleConstraints);
                         void task(
-                          "采样并比较候选牌",
-                          "sample",
+                          "正在生成两家牌完整路线",
+                          "twoHandLine",
                           [position, sampleCount, sampleSeed, sampleConstraints, objective],
                           setSample,
                         );
@@ -1397,7 +1398,7 @@ export default function App() {
                       }
                     }}
                   >
-                    分析当前最佳选择
+                    生成两家牌完整路线
                   </button>
                   {sampleReadiness && (
                     <p className="hint">
@@ -1407,33 +1408,23 @@ export default function App() {
                   {sample && (
                     <>
                       <p>
-                        {sample.samples} 个有效分布 · 种子 {sample.seed}
+                        完整条件路线 · {sample.samples} 个初始分布 · 种子 {sample.seed}
                         <br />
-                        下表为当前行动方完成目标的估计概率
+                        从第 {sample.startTrick} 墩到结束 · 本条模拟路线庄家共 {sample.declarerTricks} 墩
                       </p>
-                      {sample.moves.map((m) => (
-                        <button
-                          className="sample-move"
-                          key={m.card}
-                          onClick={() => playCard(m.card)}
-                        >
-                          <b>{fmt(m.card)}</b>
-                          <span>
-                            {(m.success * 100).toFixed(1)}%
-                            <small>
-                              区间 {(m.interval[0] * 100).toFixed(0)}–
-                              {(m.interval[1] * 100).toFixed(0)}%
-                            </small>
-                          </span>
-                          <span>
-                            {m.expected.toFixed(2)}
-                            <small>庄家期望墩数</small>
-                          </span>
-                        </button>
-                      ))}
+                      <ol className="two-hand-route" start={sample.startTrick}>
+                        {sample.tricks.map((trick,i)=><li key={i}>
+                          <details open={i===0}>
+                            <summary>第 {sample.startTrick+i} 墩 · {trick.cards.map(c=>`${LABEL[c.seat]} ${fmt(c.card)}`).join(' → ')} · {LABEL[trick.winner]}赢墩</summary>
+                            {trick.cards.map(c=>{
+                              const d=sample.decisions.find(x=>x.seat===c.seat&&x.card===c.card);
+                              return <p key={c.card}>{LABEL[c.seat]} {fmt(c.card)}：{d?`${d.samples} 个剩余分布下选择 · 做成估计 ${(d.success*100).toFixed(1)}% · 期望 ${d.expected.toFixed(2)} 墩`:side(c.seat)===side(position.contract.declarer)?'已出牌':'模拟防守应对（已出牌除外）'}</p>;
+                            })}
+                          </details>
+                        </li>)}
+                      </ol>
                       <p className="hint">
-                        区间仅反映采样误差。DDS
-                        假设后续全知，可能高估实际路线；应随真实出牌更新。
+                        庄家和明手按剩余采样分布选择，防守用一个模拟分布展示应对，不读取原牌例隐藏手牌。此处是完整条件路线，不是对任意防守的保证；DDS 后续全知估计仍有策略融合误差。实际出牌不同后，从新局面重新生成。
                       </p>
                     </>
                   )}
