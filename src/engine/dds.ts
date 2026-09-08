@@ -55,6 +55,20 @@ export const encode = (p: Position) =>
   ].join(" ");
 export function createSolver(module: DDSModule) {
   const cache = new Map<string, Evaluation>();
+  function solveLeadBeat(p: Position): Card[] {
+    const errors=validate(p);
+    if(errors.length)throw Error(errors.join('；'));
+    if(p.current.length||p.history.length||p.won[0]+p.won[1]||p.leader!==next(p.contract.declarer))throw Error('击败率快速求解只适用于初始首攻');
+    const target=14-(p.contract.level+6);
+    const raw=JSON.parse(module.ccall('tt_solve','string',['string'],[encode(p)+' '+target])) as NativeResult;
+    if(raw.code!==1)throw Error(`DDS 求解失败 (${raw.code})`);
+    const winners=new Set<Card>();
+    for(const [s,r,equals,v] of raw.cards){
+      if(v<target)continue;
+      for(let k=2;k<=14;k++)if(k===r||(equals&(1<<k)))winners.add(`${SUITS[s]}${RANKS[k-2]}` as Card);
+    }
+    return legalCards(p).filter(c=>winners.has(c));
+  }
   function solvePosition(p: Position): Evaluation {
     const errors = validate(p);
     if (errors.length) throw Error(errors.join("；"));
@@ -176,6 +190,7 @@ export function createSolver(module: DDSModule) {
     });
   }
   return {
+    solveLeadBeat,
     solvePosition,
     generateLine,
     calculateTable,

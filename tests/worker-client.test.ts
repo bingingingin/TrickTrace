@@ -21,3 +21,11 @@ it('terminates active work and rejects its result before starting a new position
  const old=compute('line',[]);const rejection=expect(old).rejects.toThrow('计算已取消');const worker=FakeWorker.instances[0];cancelAll();await rejection;
  expect(worker.terminate).toHaveBeenCalledOnce();const fresh=compute('solve',[]);worker.complete('stale');FakeWorker.instances[1].complete(9);expect(await fresh).toBe(9);
 });
+it('cancels every lead worker and ignores stale batch results',async()=>{
+ vi.stubGlobal('navigator',{hardwareConcurrency:8,deviceMemory:8});
+ const result=compute('openingLead',[{},16,42,[],'contract','beat']);const rejected=expect(result).rejects.toThrow('计算已取消');
+ FakeWorker.instances[0].complete({samples:Array(16).fill({}),attempts:16});
+ await Promise.resolve();await Promise.resolve();
+ expect(FakeWorker.instances.length).toBe(2);cancelAll();await rejected;
+ for(const w of FakeWorker.instances){expect(w.terminate).toHaveBeenCalledOnce();w.complete({count:8,moves:[]});}
+});

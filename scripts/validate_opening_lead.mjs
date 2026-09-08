@@ -1,0 +1,169 @@
+import { chromium } from "@playwright/test";
+import assert from "node:assert/strict";
+import fs from "node:fs/promises";
+
+const url = process.env.TRICKTRACE_URL || "http://127.0.0.1:5173/";
+const browser = await chromium.launch({ channel: "chrome", headless: true });
+try {
+  const page = await browser.newPage({ viewport: { width: 1440, height: 1050 } });
+  const errors = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.addInitScript(() => {if(!sessionStorage.getItem('lead-test-initialized')){localStorage.clear();sessionStorage.setItem('lead-test-initialized','1');}});
+  await page.goto(url, { waitUntil: "domcontentloaded", timeout: 120000 });
+
+  const feature = page.getByRole("switch", { name: /单明手最佳首攻/ });
+  assert.equal(await feature.getAttribute("aria-checked"), "false");
+  assert.equal(await page.getByRole("button", { name: "首攻", exact: true }).count(), 0);
+
+  await feature.click();
+  assert.equal(await feature.getAttribute("aria-checked"), "true");
+  await page.getByRole("button", { name: "首攻", exact: true }).waitFor();
+  const choices = page.locator(".count-options > button");
+  assert.deepEqual(await choices.allTextContents(), ["250", "1000", "2500", "5000"]);
+  assert.equal(await page.getByLabel("自定义模拟次数").inputValue(), "1000");
+  assert.equal(await page.getByRole('button',{name:/用开叫模板填充/}).count(),0);
+  await page.getByLabel('首攻分析叫牌').fill('1NT P 2D P 2H');
+  await page.waitForFunction(()=>document.querySelector('input[aria-label="S ♥ 张数"]')?.value==='5+');
+  assert.equal(await page.getByLabel('S ♦ 张数',{exact:true}).inputValue(),'');
+  await page.getByLabel('S ♥ 张数',{exact:true}).fill('6+');
+  await page.getByLabel('S ♥ 张数',{exact:true}).blur();
+  await page.getByLabel('首攻分析叫牌').fill('1NT P 2H P 2S');
+  await page.waitForFunction(()=>document.querySelector('input[aria-label="S ♠ 张数"]')?.value==='5+');
+  assert.equal(await page.getByLabel('S ♥ 张数',{exact:true}).inputValue(),'6+');
+  await page.getByRole('button',{name:'恢复南家推断',exact:true}).click();
+  await page.waitForFunction(()=>document.querySelector('input[aria-label="S ♥ 张数"]')?.value==='');
+  await page.getByRole('button',{name:'撤销',exact:true}).click();
+  await page.getByRole('button',{name:'撤销',exact:true}).click();
+  await page.getByRole('button',{name:'撤销',exact:true}).click();
+  await page.waitForFunction(()=>document.querySelector('input[aria-label="S ♠ 张数"]')?.value==='');
+  await page.getByLabel('首攻分析叫牌').fill('1H 2NT 3D');
+  await page.waitForFunction(()=>document.querySelector('input[aria-label="S ♠ 张数"]')?.value==='5+');
+  assert.equal(await page.getByLabel('S ♦ 张数',{exact:true}).inputValue(),'');
+  await page.getByLabel('首攻分析叫牌').fill('1NT 2H 2NT P 3C P 3NT');
+  await page.waitForFunction(()=>document.querySelector('input[aria-label="S ♠ 张数"]')?.value==='0-3');
+  assert.equal(await page.getByLabel('S ♥ 张数',{exact:true}).inputValue(),'0-3');
+  await page.getByLabel('首攻分析叫牌').fill('1H X 1NT');
+  await page.waitForFunction(()=>document.querySelector('input[aria-label="S ♥ 张数"]')?.value==='3-4');
+  assert.ok((await page.getByLabel('S 牌型与牌张条件').inputValue()).includes('AND'));
+  await page.getByLabel('首攻分析叫牌').fill('1S P 1H');
+  await page.waitForFunction(()=>[...document.querySelectorAll('button')].find(b=>b.textContent==='开始首攻分析')?.disabled);
+  await page.getByLabel('首攻分析叫牌').fill('P P 1NT P 3NT P P P');
+  await page.waitForFunction(()=>document.querySelector('input[aria-label="S 大牌点"]')?.value==='15-17');
+  await page.getByRole('button',{name:'清空叫牌',exact:true}).click();
+  await page.getByRole('button',{name:'不叫',exact:true}).click();
+  await page.getByRole('button',{name:'不叫',exact:true}).click();
+  await page.getByRole('button',{name:'1NT',exact:true}).click();
+  assert.equal(await page.getByLabel('首攻分析叫牌').inputValue(),'P P 1NT');
+  const mode=process.env.LEAD_TEST_MODE||'beat';
+  await page.getByLabel('首攻求解模式').selectOption(mode);
+
+  assert.equal(await page.getByRole("button", { name: /创建单明手副本/ }).count(),0);
+  assert.equal(await page.locator(".unknown-hand").count(), 0);
+  const beforeAnalysis=await page.evaluate(()=>localStorage.getItem('tricktrace.v1'));
+  await page.getByLabel('S 大牌点',{exact:true}).fill('20-10');
+  await page.getByLabel('S 大牌点',{exact:true}).blur();
+  assert.equal(await page.getByRole('button',{name:'开始首攻分析',exact:true}).isDisabled(),true);
+  await page.getByLabel('S 大牌点',{exact:true}).fill('15-17');
+  await page.getByLabel('S 大牌点',{exact:true}).blur();
+  const sampleCount=Number(process.env.LEAD_TEST_COUNT||16);
+  await page.getByLabel("自定义模拟次数").fill(String(sampleCount));
+  const started=Date.now();
+  await page.getByRole("button", { name: "开始首攻分析", exact: true }).click();
+  await page.locator(".lead-ranking").waitFor({ timeout: 300000 });
+  assert.equal(await page.locator(".lead-ranking .sample-move").count(), 13);
+  assert.ok((await page.locator(".lead-ranking-head").innerText()).includes(`${sampleCount} 个有效分布`));
+  const elapsedMs=Date.now()-started;
+  assert.equal(await page.evaluate(()=>localStorage.getItem('tricktrace.v1')),beforeAnalysis);
+  assert.equal(await page.locator('.unknown-hand').count(),0);
+  const timing=await page.locator('.lead-ranking-head small').innerText();
+  assert.equal(await page.getByText('快速模式不计算墩数',{exact:true}).count(),mode==='beat'?13:0);
+  assert.equal(await page.locator(".best-lead em").innerText(), "首选");
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await fs.mkdir("artifacts", { recursive: true });
+  await page.screenshot({ path: "artifacts/opening-lead-mobile.png", fullPage: true });
+  const overflow = await page.evaluate(() => ({
+    innerWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+    elements: [...document.querySelectorAll("body *")]
+      .map((element) => {
+        const rect = element.getBoundingClientRect();
+        return {
+          tag: element.tagName,
+          className: element.className,
+          left: Math.round(rect.left),
+          right: Math.round(rect.right),
+        };
+      })
+      .filter((item) => item.left < 0 || item.right > innerWidth)
+      .slice(0, 20),
+  }));
+  assert.equal(
+    overflow.scrollWidth > overflow.innerWidth,
+    false,
+    JSON.stringify(overflow),
+  );
+  assert.deepEqual(errors, []);
+  await page.getByRole('button',{name:'返回原牌局',exact:true}).click();
+  assert.equal(await page.locator('.unknown-hand').count(),0);
+  assert.equal(await feature.getAttribute('aria-checked'),'false');
+  await page.waitForFunction(()=>!document.querySelector('.play-button').disabled);
+  await page.getByRole('button',{name:'开始',exact:true}).click();
+  await page.waitForFunction(()=>document.querySelector('.playback>span')?.textContent==='1 / 52 张');
+  await page.waitForFunction(()=>!document.querySelector('.play-button').disabled);
+  await feature.click();
+  await page.getByLabel('自定义模拟次数').fill('16');
+  await page.getByRole('button',{name:'开始首攻分析',exact:true}).click();
+  await page.locator('.lead-ranking').waitFor({timeout:300000});
+  await page.getByRole('button',{name:'返回原牌局',exact:true}).click();
+  assert.equal(await page.locator('.playback>span').innerText(),'1 / 52 张');
+  // Two independent fixture boards for deletion coverage; analysis itself created none.
+  await page.evaluate(()=>{const s=JSON.parse(localStorage.getItem('tricktrace.v1'));const b=structuredClone(s.boards[0]);b.id=crypto.randomUUID();b.name='删除测试牌例';s.boards.push(b);localStorage.setItem('tricktrace.v1',JSON.stringify(s));});
+  await page.reload();
+  // Destructive controls operate only on this isolated test profile.
+  const savedCount=await page.evaluate(()=>JSON.parse(localStorage.getItem('tricktrace.v1')).boards.length);
+  const savedStore=await page.evaluate(()=>localStorage.getItem('tricktrace.v1'));
+  page.once('dialog',dialog=>dialog.dismiss());
+  await page.getByRole('button',{name:'清空全部',exact:true}).click();
+  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('tricktrace.v1')).boards.length),savedCount);
+  page.once('dialog',dialog=>dialog.accept());
+  await page.getByRole('button',{name:'删除当前牌例',exact:true}).click();
+  await page.waitForFunction(n=>JSON.parse(localStorage.getItem('tricktrace.v1')).boards.length===n,savedCount-1);
+  await page.evaluate(s=>localStorage.setItem('tricktrace.v1',s),savedStore);
+  await page.reload();
+  await page.setViewportSize({width:900,height:1000});
+  assert.equal(await page.getByRole('button',{name:'清空全部',exact:true}).isVisible(),true);
+  page.once('dialog',dialog=>dialog.accept());
+  await page.getByRole('button',{name:'清空全部',exact:true}).click();
+  await page.waitForFunction(()=>{const s=JSON.parse(localStorage.getItem('tricktrace.v1'));return s.boards.length===1&&s.boards[0].name==='新牌局 1'&&Object.keys(s.sessions).length===0;});
+  await page.reload();
+  assert.equal(await page.locator('.workspace-heading h1').innerText(),'新牌局 1');
+  page.once('dialog',dialog=>dialog.accept());
+  await page.getByRole('button',{name:'删除当前牌例',exact:true}).click();
+  assert.equal(await page.locator('.workspace-heading h1').innerText(),'新牌局 1');
+  assert.deepEqual(errors,[]);
+  const report = {
+    url,
+    passed: true,
+    ccbaCompetitiveLink: true,
+    samples: sampleCount,
+    elapsedMs,
+    mode,
+    timing,
+    returnToOriginal: true,
+    noVisibleCopy: true,
+    ccbaAutoLink: true,
+    deleteAndClear: true,
+    leadCount: 13,
+    defaultEnabled: false,
+    countChoices: [250, 1000, 2500, 5000],
+    errors,
+  };
+  await fs.writeFile(
+    "artifacts/opening-lead-report.json",
+    `${JSON.stringify(report, null, 2)}\n`,
+  );
+  console.log(report);
+} finally {
+  await browser.close();
+}

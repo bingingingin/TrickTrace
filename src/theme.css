@@ -58,6 +58,14 @@ header nav .theme-toggle { height: auto; padding: 8px 0; gap: 7px; white-space: 
 [data-theme=dark] .hint { color: #bcb58e!important; }
 [data-theme=dark] .ocr-selection { color: var(--ink)!important; }
 [data-theme=dark] .tactics article small.verified { color: #bdd995; }
+[data-theme=dark] :is(.sidebar-feature,.simulation-count,.count-options>button) { background: var(--field); border-color: var(--line); }
+[data-theme=dark] :is(.sidebar-feature.enabled,.feature-icon,.constraint-presets button,.lead-readiness,.lead-ranking .sample-move.best-lead,.lead-auction-table>b,.lead-panel-toolbar .lead-back:hover) { background: var(--soft); border-color: var(--line); }
+[data-theme=dark] :is(.count-options>button[aria-pressed=true],.constraint-presets button[aria-pressed=true]) { background: var(--green); color: var(--on-primary); border-color: var(--green); }
+[data-theme=dark] :is(.lead-auction-table,.lead-auction-table>*,.lead-seat-fields) { border-color: var(--line); }
+[data-theme=dark] .ccba-status { color: var(--green); }
+[data-theme=dark] .constraint-warning { color: #e2c690; }
+[data-theme=dark] .delete-board { color: #e4a99b; }
+[data-theme=dark] .delete-board:hover { background: #402b28; color: #ffb1a1; }
 @media(max-width:1020px) { header { gap: 22px; } header nav { gap: 18px; } .local-badge { font-size: 10px; } }
 @media(max-width:760px) {
   header { padding: 0 14px; gap: 10px; }
