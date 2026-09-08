@@ -293,7 +293,8 @@ async function run(bitmap: ImageBitmap, debug = false): Promise<Recognition> {
         const allowed = redFraction(c) > 0.5 ? ["H", "D"] : ["S", "C"];
         label = allowed.reduce((a, b) => row[labels.indexOf(a)] >= row[labels.indexOf(b)] ? a : b);
       }
-      const normalized = tensorOf(c, w, angle(c, rot));
+      // The model input already contains this exact normalized glyph.
+      const normalized = input.subarray(i * 1024, (i + 1) * 1024);
       let difference = 0,
         ink = 0;
       const profile = Array(8).fill(0) as number[];
@@ -318,6 +319,53 @@ async function run(bitmap: ImageBitmap, debug = false): Promise<Recognition> {
       });
     });
     self.postMessage({ progress: 25 + rot / 6 });
+  }
+  if (white) {
+    // Kerning can connect QJ/KJ into one component. Try a small, batched set
+    // of vertical cuts only on ambiguous wide glyphs, requiring both halves
+    // to independently match the existing model with high confidence.
+    const splits: { original: Component; left: Component; right: Component }[] = [];
+    for (const c of all.filter(c => c.confidence! < 0.9 && c.w > c.h * 0.9 && c.w < c.h * 1.8)) {
+      const ink = new Set(c.pixels);
+      for (const fraction of [0.55, 0.6, 0.65, 0.7, 0.75, 0.8]) {
+        const cut = c.x + Math.round(c.w * fraction);
+        // Touching letters have a localized thin join. Cutting through Q's
+        // bowl crosses both its top and bottom, and must never split that Q.
+        const bridge = c.pixels.filter(p => p % w === cut - 1 &&
+          [1 - w, 1, 1 + w].some(d => ink.has(p + d))).map(p => Math.floor(p / w));
+        if (!bridge.length || bridge.length > c.h * 0.14 ||
+          Math.max(...bridge) - Math.min(...bridge) > c.h * 0.25) continue;
+        const halves = [c.pixels.filter(p => p % w < cut), c.pixels.filter(p => p % w >= cut)];
+        const parts = halves.map(pixels => {
+          if (pixels.length < 12) return null;
+          const xs = pixels.map(p => p % w), ys = pixels.map(p => Math.floor(p / w));
+          const x = Math.min(...xs), y = Math.min(...ys);
+          return { x, y, w: Math.max(...xs) - x + 1, h: Math.max(...ys) - y + 1, pixels, rotation: 0, angle: 0 } as Component;
+        });
+        if (parts.every(p => p && p.w >= 3 && p.h >= c.h * 0.75))
+          splits.push({ original: c, left: parts[0]!, right: parts[1]! });
+      }
+    }
+    if (splits.length) {
+      const parts = splits.flatMap(s => [s.left, s.right]);
+      const input = new Float32Array(parts.length * 1024);
+      parts.forEach((c, i) => input.set(tensorOf(c, w), i * 1024));
+      const output = await session.run({ image: new ort.Tensor("float32", input, [parts.length, 1, 32, 32]) });
+      const logits = output.logits.data as Float32Array;
+      parts.forEach((c, i) => {
+        const row = Array.from(logits.subarray(i * labels.length, (i + 1) * labels.length));
+        const max = Math.max(...row);
+        c.label = labels[row.indexOf(max)];
+        c.confidence = 1 / row.reduce((sum, v) => sum + Math.exp(v - max), 0);
+      });
+      const accepted = new Set<Component>();
+      for (const split of splits.sort((a, b) => Math.min(b.left.confidence!, b.right.confidence!) - Math.min(a.left.confidence!, a.right.confidence!))) {
+        if (accepted.has(split.original) || !/^[QK]$/.test(split.left.label!) || split.right.label !== "J" ||
+          split.left.confidence! < 0.98 || split.right.confidence! < 0.98) continue;
+        accepted.add(split.original);
+        all.splice(all.indexOf(split.original), 1, split.left, split.right);
+      }
+    }
   }
   const ocr = await createWorker("eng", 1, {
     workerPath: "/ocr/worker.min.js",
@@ -379,8 +427,28 @@ async function run(bitmap: ImageBitmap, debug = false): Promise<Recognition> {
         tc.rotate(-Math.PI / 2);
       }
       tc.drawImage(source, 0, 0);
-      const read = await ocr.recognize(await tile.convertToBlob());
-      const token = read.data.text.toUpperCase().replace(/[^1-7NTSHDC]/g, "");
+      let read = await ocr.recognize(await tile.convertToBlob());
+      let token = read.data.text.toUpperCase().replace(/[^1-7NTSHDC]/g, "");
+      if (!/^[1-7](?:NT|[SHDC])$/.test(token)) {
+        // Suppress the pale widget border and background before retrying the
+        // small rotated contract text. Never turn a bare level into NT.
+        const pixels = tc.getImageData(0, 0, tile.width, tile.height);
+        for (let i = 0; i < pixels.data.length; i += 4) {
+          const [r, g, b] = [pixels.data[i], pixels.data[i + 1], pixels.data[i + 2]];
+          const value = r + g + b < 350 && b > g * 1.25 && r > g * 1.1 ? 0 : 255;
+          pixels.data[i] = pixels.data[i + 1] = pixels.data[i + 2] = value;
+          pixels.data[i + 3] = 255;
+        }
+        tc.putImageData(pixels, 0, 0);
+        await ocr.setParameters({tessedit_pageseg_mode: PSM.SINGLE_LINE});
+        const alternative = await ocr.recognize(await tile.convertToBlob());
+        const alternativeToken = alternative.data.text.toUpperCase().replace(/[^1-7NTSHDC]/g, "");
+        if (/^[1-7](?:NT|[SHDC])$/.test(alternativeToken) && alternative.data.confidence >= 60) {
+          read = alternative;
+          token = alternativeToken;
+        }
+        await ocr.setParameters({tessedit_pageseg_mode: PSM.SINGLE_WORD});
+      }
       contractAttempts.push({
         rotation,
         text: read.data.text,
@@ -404,7 +472,14 @@ async function run(bitmap: ImageBitmap, debug = false): Promise<Recognition> {
       tc.fillStyle = "white";
       tc.fillRect(0, 0, tile.width, tile.height);
       tc.drawImage(canvas, c.x, c.y, c.w, c.h, 18, 18, c.w * 3, c.h * 3);
-      const read = await ocr.recognize(await tile.convertToBlob());
+      const blob = await tile.convertToBlob();
+      let read = await ocr.recognize(blob);
+      if (c.label === "Q" && (read.data.text.trim() !== "Q" || read.data.confidence < 60)) {
+        await ocr.setParameters({tessedit_pageseg_mode: PSM.RAW_LINE});
+        const alternative = await ocr.recognize(blob);
+        if (alternative.data.text.trim() === "Q" && alternative.data.confidence >= 60) read = alternative;
+        await ocr.setParameters({tessedit_pageseg_mode: PSM.SINGLE_CHAR});
+      }
       const token = read.data.text.trim();
       if (token === c.label && read.data.confidence >= 60)
         c.confidence = Math.max(c.confidence!, read.data.confidence / 100);
@@ -653,8 +728,9 @@ async function run(bitmap: ImageBitmap, debug = false): Promise<Recognition> {
       small.getContext("2d")!.putImageData(new ImageData(px, 32, 32), 0, 0);
       tc.drawImage(small, 0, 0, 96, 96);
       const read = await ocr.recognize(await tile.convertToBlob());
-      const label = read.data.text.trim();
-      if (/^[0-9TJQKA]$/.test(label) && read.data.confidence >= 80) {
+      const label = read.data.text.trim().replace(/^10$/, "T");
+      if (/^[0-9TJQKA]$/.test(label) && read.data.confidence >= 80 &&
+        !(fan && c.confidence! >= 0.995 && c.label !== label && read.data.confidence < 95)) {
         c.label = label;
         c.confidence = read.data.confidence / 100;
       }
@@ -979,6 +1055,55 @@ async function run(bitmap: ImageBitmap, debug = false): Promise<Recognition> {
           recognizedTextRows.set(candidate, anchor);
           candidates.push(candidate);
         }
+        // Reconcile an OCR symbol with the visible components it covers.
+        // This also handles 8 misread as 3 and a merged "87" read as "7".
+        for (const token of candidates.filter(c => recognizedTextRows.get(c) === anchor)) {
+          const [tx, ty, tw, th] = [token.box[0] * w, token.box[1] * h, token.box[2] * w, token.box[3] * h];
+          const glyphs = all.filter(c => /^(?:[2-9TJQKA]|10)$/.test(c.label!) && c.confidence! >= 0.98 &&
+            c.x + c.w / 2 >= tx && c.x + c.w / 2 <= tx + tw &&
+            Math.abs(c.y - ty) <= c.h * 0.3 && c.h >= th * 0.65 && c.h <= th * 1.3)
+            .sort((a, b) => a.x - b.x || b.w - a.w);
+          if (!glyphs.length || Math.abs(glyphs[0].x - tx) > th * 0.25 ||
+            Math.abs(glyphs.at(-1)!.x + glyphs.at(-1)!.w - tx - tw) > th * 0.25 ||
+            glyphs.some((g, i) => i > 0 && (g.x < glyphs[i - 1].x + glyphs[i - 1].w - 1 ||
+              g.x - glyphs[i - 1].x - glyphs[i - 1].w > th * 0.7))) continue;
+          if (glyphs.length === 1 && token.card.slice(1) === glyphs[0].label) continue;
+          candidates.splice(candidates.indexOf(token), 1);
+          recognizedTextRows.delete(token);
+          for (const g of glyphs) {
+            const recovered: Candidate = { seat: s, card: `${anchor.label}${g.label === "10" ? "T" : g.label}` as Card,
+              confidence: Math.min(anchor.confidence!, g.confidence!), box: [g.x / w, g.y / h, g.w / w, g.h / h] };
+            recognizedTextRows.set(recovered, anchor);
+            candidates.push(recovered);
+          }
+        }
+        // A narrow J next to Q can be swallowed by a single OCR symbol even
+        // though the connected-component model sees two separate glyphs.
+        // Recover only from two confident, aligned image components inside
+        // that symbol's box; never infer a J from the missing-card inventory.
+        const rowCandidates = candidates.filter(c => recognizedTextRows.get(c) === anchor);
+        if (!rowCandidates.some(c => c.card === `${anchor.label}J`)) {
+          for (const j of all.filter(c => c.label === "J" && c.confidence! >= 0.98 &&
+            c.x > left && c.x + c.w <= left + width &&
+            c.y >= top && c.y + c.h <= bottom && c.h > anchor.h * 0.55)) {
+            const merged = rowCandidates.find(c => c.card.endsWith("Q") &&
+              c.box[0] * w < j.x && (c.box[0] + c.box[2]) * w >= j.x + j.w * 0.5);
+            if (!merged) continue;
+            const q = all.find(c => c.label === "Q" && c.confidence! >= 0.98 &&
+              c.x < j.x && c.x + c.w <= j.x + 1 && j.x - c.x - c.w < j.h * 0.35 &&
+              Math.abs(c.y - j.y) < j.h * 0.2 &&
+              Math.abs(c.x - merged.box[0] * w) < j.h * 0.2);
+            if (!q) continue;
+            const recovered: Candidate = {
+              seat: s, card: `${anchor.label}J` as Card,
+              confidence: Math.min(anchor.confidence!, j.confidence!, q.confidence!),
+              box: [j.x / w, j.y / h, j.w / w, j.h / h],
+            };
+            recognizedTextRows.set(recovered, anchor);
+            candidates.push(recovered);
+            break;
+          }
+        }
         continue;
       }
       const row = all
@@ -1020,7 +1145,9 @@ async function run(bitmap: ImageBitmap, debug = false): Promise<Recognition> {
           (c) =>
             c.rotation === rv &&
             SUITS.includes(c.label as Suit) &&
-            c.confidence! > 0.7,
+            (c.confidence! > 0.7 || (fan && seat === "S" && r.confidence! >= 0.95 &&
+              c.label === "C" && c.confidence! > 0.6 && c.symmetry! > 0.74 &&
+              redFraction(c) < 0.1 && redFraction(r) < 0.1)),
         )
         .map((c) => {
           const dx = c.x + c.w / 2 - r.x - r.w / 2,
@@ -1049,176 +1176,8 @@ async function run(bitmap: ImageBitmap, debug = false): Promise<Recognition> {
     }
   }
   debugBeforeReconcile = candidates.map((c) => structuredClone(c));
-  // For four exposed flat hands, reconcile an entire index row with the text engine.
-  // Row geometry also excludes artwork and the inverted corner on the last card.
-  if (
-    !white &&
-    scale > 1 &&
-    !fan &&
-    SEATS.every((s) => candidates.filter((c) => c.seat === s).length >= 8)
-  ) {
-    await ocr.setParameters({
-      tessedit_pageseg_mode: PSM.SINGLE_LINE,
-      tessedit_char_whitelist: "23456789TJQKA10",
-    });
-    for (const seat of SEATS) {
-      const vertical = seat === "E" || seat === "W",
-        rv = { N: 0, S: 0, W: 270, E: 90 }[seat];
-      const seed = candidates.filter(
-        (c) => c.seat === seat && c.confidence > 0.8,
-      );
-      if (seed.length < 6) continue;
-      const med = (a: number[]) =>
-        a.sort((a, b) => a - b)[Math.floor(a.length / 2)];
-      const axis = med(
-        seed.map((c) =>
-          vertical
-            ? (c.box[0] + c.box[2] / 2) * w
-            : (c.box[1] + c.box[3] / 2) * h,
-        ),
-      );
-      const size = med(
-        seed.map((c) => (vertical ? c.box[2] * w : c.box[3] * h)),
-      );
-      let band = seed
-        .filter(
-          (c) =>
-            Math.abs(
-              (vertical
-                ? (c.box[0] + c.box[2] / 2) * w
-                : (c.box[1] + c.box[3] / 2) * h) - axis,
-            ) <
-            size * 0.65,
-        )
-        .sort((a, b) => (vertical ? a.box[1] - b.box[1] : a.box[0] - b.box[0]));
-      const along = (c: Candidate) =>
-        vertical
-          ? (c.box[1] + c.box[3] / 2) * h
-          : (c.box[0] + c.box[2] / 2) * w;
-      const gaps = band
-        .slice(1)
-        .map((c, i) => along(c) - along(band[i]))
-        .filter((g) => g > size * 0.4);
-      const gap = med(gaps);
-      const cut = band.findIndex(
-        (c, i) => i > 0 && along(c) - along(band[i - 1]) > gap * 2.5,
-      );
-      if (cut > 5) band = band.slice(0, cut);
-      if (!band.length) continue;
-      const low = along(band[0]) - gap * 0.5,
-        high = along(band.at(-1)!) + gap * 0.5;
-      const left = Math.max(0, Math.floor(vertical ? axis - size * 0.65 : low)),
-        top = Math.max(0, Math.floor(vertical ? low : axis - size * 0.65)),
-        bw = Math.min(w - left, Math.ceil(vertical ? size * 1.3 : high - low)),
-        bh = Math.min(h - top, Math.ceil(vertical ? high - low : size * 1.3));
-      const sw = vertical ? bh : bw,
-        sh = vertical ? bw : bh,
-        strip = new OffscreenCanvas(sw * 2, sh * 2),
-        tc = strip.getContext("2d")!;
-      tc.scale(2, 2);
-      if (rv === 90) {
-        tc.translate(bh, 0);
-        tc.rotate(Math.PI / 2);
-      }
-      if (rv === 270) {
-        tc.translate(0, bw);
-        tc.rotate(-Math.PI / 2);
-      }
-      tc.drawImage(canvas, left, top, bw, bh, 0, 0, bw, bh);
-      const read = await ocr.recognize(
-        await strip.convertToBlob(),
-        {},
-        { text: true, blocks: true },
-      );
-      const symbols =
-        read.data.blocks?.flatMap((b) =>
-          b.paragraphs.flatMap((p) =>
-            p.lines.flatMap((l) => l.words.flatMap((w) => w.symbols)),
-          ),
-        ) ?? [];
-      for (let i = candidates.length - 1; i >= 0; i--) {
-        const c = candidates[i];
-        if (
-          c.seat === seat &&
-          (Math.abs(
-            (vertical
-              ? (c.box[0] + c.box[2] / 2) * w
-              : (c.box[1] + c.box[3] / 2) * h) - axis,
-          ) >
-            size * 0.8 ||
-            along(c) > high)
-        )
-          candidates.splice(i, 1);
-      }
-      for (let i = 0; i < symbols.length; i++) {
-        const token = symbols[i];
-        let label = token.text,
-          x1 = token.bbox.x1;
-        if (label === "1" && symbols[i + 1]?.text === "0") {
-          label = "T";
-          x1 = symbols[++i].bbox.x1;
-        }
-        if (!/^[2-9TJQKA]$/.test(label) || token.confidence < 90) continue;
-        const back = (x: number, y: number): [number, number] =>
-          rv === 90
-            ? [left + y / 2, top + bh - x / 2]
-            : rv === 270
-              ? [left + bw - y / 2, top + x / 2]
-              : [left + x / 2, top + y / 2];
-        const pts = [
-            back(token.bbox.x0, token.bbox.y0),
-            back(x1, token.bbox.y1),
-          ],
-          x = Math.min(...pts.map((p) => p[0])),
-          y = Math.min(...pts.map((p) => p[1])),
-          rw = Math.abs(pts[1][0] - pts[0][0]),
-          rh = Math.abs(pts[1][1] - pts[0][1]);
-        const possible = all
-          .filter(
-            (c) =>
-              c.rotation === rv &&
-              SUITS.includes(c.label as Suit) &&
-              c.confidence! > 0.6,
-          )
-          .map((c) => {
-            const [xx, yy] = inverseVector(
-              c.x + c.w / 2 - x - rw / 2,
-              c.y + c.h / 2 - y - rh / 2,
-              (360 - rv) % 360,
-            );
-            return { c, xx, yy };
-          })
-          .filter(
-            (c) =>
-              c.yy > size * 0.3 &&
-              c.yy < size * 1.7 &&
-              Math.abs(c.xx) < size * 0.6 &&
-              Math.max(c.c.w, c.c.h) < size * 1.3,
-          )
-          .sort((a, b) => Math.hypot(a.xx, a.yy) - Math.hypot(b.xx, b.yy));
-        if (!possible.length) continue;
-        for (let j = candidates.length - 1; j >= 0; j--) {
-          const c = candidates[j];
-          if (
-            c.seat === seat &&
-            Math.abs((c.box[0] + c.box[2] / 2) * w - x - rw / 2) <
-              size * 0.45 &&
-            Math.abs((c.box[1] + c.box[3] / 2) * h - y - rh / 2) < size * 0.45
-          )
-            candidates.splice(j, 1);
-        }
-        candidates.push({
-          seat,
-          card: `${possible[0].c.label}${label}` as Card,
-          confidence: Math.min(
-            token.confidence / 100,
-            possible[0].c.confidence!,
-          ),
-          box: [x / w, y / h, rw / w, rh / h],
-        });
-      }
-    }
-  }
+  // Flat-hand reconciliation below uses the original corner candidates.
+  // Do not OCR those rows here: that result would be discarded in full.
   if (stackCards.length >= 8) {
     for (let i = candidates.length - 1; i >= 0; i--)
       if (candidates[i].seat === "E") candidates.splice(i, 1);
@@ -1268,9 +1227,13 @@ async function run(bitmap: ImageBitmap, debug = false): Promise<Recognition> {
         .map((x, i) => x - positions[i])
         .filter((x) => x > size * 0.35),
         gap = median(gaps) || size * 1.4;
-      const cut = positions.findIndex(
-        (x, i) => i > 5 && x - positions[i - 1] > gap * 2.45,
-      );
+      const cut = positions.findIndex((x, i) => i > 5 && x - positions[i - 1] > gap * 2.45 &&
+        // A gap in accepted cards is not the end of the row when visible
+        // rank glyphs occupy it (their suit may have failed recognition).
+        !all.some(r => r.rotation === rv && /^(?:[2-9TJQKA]|10)$/.test(r.label!) && r.confidence! >= 0.72 &&
+          Math.abs((vertical ? r.x + r.w / 2 : r.y + r.h / 2) - axis) < size * 0.75 &&
+          (vertical ? r.y + r.h / 2 : r.x + r.w / 2) > positions[i - 1] + gap * 0.3 &&
+          (vertical ? r.y + r.h / 2 : r.x + r.w / 2) < x - gap * 0.3));
       if (cut > 0) {
         const limit = (positions[cut - 1] + positions[cut]) / 2;
         row = row.filter((c) => along(c) < limit);
@@ -1304,7 +1267,9 @@ async function run(bitmap: ImageBitmap, debug = false): Promise<Recognition> {
         const before = ordered().filter((c) => along(c) < ralong).at(-1),
           after = ordered().find((c) => along(c) > ralong),
           inferredSuit = after
-            ? (after.card[0] as Suit)
+            ? (before && before.card[0] !== after.card[0] &&
+                /[HD]/.test(before.card[0]) && !/[HD]/.test(after.card[0]) && redFraction(r) > 0.7
+                ? before.card[0] as Suit : after.card[0] as Suit)
             : before
               ? (before.card[0] as Suit)
               : undefined;
@@ -1475,7 +1440,8 @@ async function run(bitmap: ImageBitmap, debug = false): Promise<Recognition> {
       | Suit
       | "NT";
     if (fan) {
-      const physicalDummy: Seat = stackReads.length === 4 ? "E" : "N";
+      const physicalDummy: Seat = stackReads.length === 4 ||
+        (physicalCounts.E >= 8 && physicalCounts.N <= 3 && physicalCounts.W <= 3) ? "E" : "N";
       const dummy = seatMap[physicalDummy];
       board.position.contract.declarer = SEATS[(SEATS.indexOf(dummy) + 2) % 4];
       board.position.leader = SEATS[(SEATS.indexOf(board.position.contract.declarer) + 1) % 4];
@@ -1520,7 +1486,7 @@ async function run(bitmap: ImageBitmap, debug = false): Promise<Recognition> {
     candidates: selected,
     warnings,
     layout: white ? "text" : "cards",
-    ...(debug && import.meta.env.DEV ? {debug: {w,h,fan,white,sceneText,contractRead,contractAttempts,purple,stackReads,stackCards,stackDiagnostics,tableCardRegions,tableCards,seatMap,all: all.map(({pixels,scores,altScores,...c})=>c),beforeReconcile:debugBeforeReconcile,afterReconcile:candidates}} : {}),
+    ...(debug && import.meta.env.DEV ? {debug: {w,h,fan,white,sceneText,contractRead,contractAttempts,purple,stackReads,stackCards,stackDiagnostics,tableCardRegions,tableCards,seatMap,all: all.map(({pixels,scores,altScores,...c})=>({...c,modelLabel:scores?labels[scores.indexOf(Math.max(...scores))]:undefined,modelConfidence:scores?Math.max(...scores):undefined})),beforeReconcile:debugBeforeReconcile,afterReconcile:candidates}} : {}),
   };
 }
 self.onmessage = async ({ data }) => {

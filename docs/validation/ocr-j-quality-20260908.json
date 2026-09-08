@@ -1,0 +1,1419 @@
+{
+  "note": "Supplied, development, holdout and transformed supplied images are separate datasets. Batch elapsed times include other concurrent validation work; use isolated timing runs for speed claims.",
+  "summary": [
+    {
+      "dataset": "supplied",
+      "images": 7,
+      "before": {
+        "exactImages": 7,
+        "missing": 0,
+        "missingJ": 0,
+        "extra": 0,
+        "medianMs": 16103
+      },
+      "after": {
+        "exactImages": 7,
+        "missing": 0,
+        "missingJ": 0,
+        "extra": 0,
+        "medianMs": 19219
+      }
+    },
+    {
+      "dataset": "independent",
+      "images": 80,
+      "before": {
+        "exactImages": 68,
+        "missing": 17,
+        "missingJ": 6,
+        "extra": 2,
+        "medianMs": 6343.5
+      },
+      "after": {
+        "exactImages": 73,
+        "missing": 8,
+        "missingJ": 0,
+        "extra": 2,
+        "medianMs": 6737
+      }
+    },
+    {
+      "dataset": "holdout",
+      "images": 20,
+      "before": {
+        "exactImages": 19,
+        "missing": 1,
+        "missingJ": 0,
+        "extra": 0,
+        "medianMs": 6628
+      },
+      "after": {
+        "exactImages": 19,
+        "missing": 1,
+        "missingJ": 0,
+        "extra": 0,
+        "medianMs": 6759
+      }
+    },
+    {
+      "dataset": "variants",
+      "images": 14,
+      "before": {
+        "exactImages": 7,
+        "missing": 19,
+        "missingJ": 1,
+        "extra": 2,
+        "medianMs": 25556
+      },
+      "after": {
+        "exactImages": 7,
+        "missing": 19,
+        "missingJ": 1,
+        "extra": 2,
+        "medianMs": 19596
+      }
+    }
+  ],
+  "recoveredErrors": 9,
+  "regressionErrors": 0,
+  "rows": [
+    {
+      "image": "supplied/双明手1.jpg/original",
+      "dataset": "supplied",
+      "beforeMs": 5453,
+      "afterMs": 4009,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "supplied/双明手2.jpg/original",
+      "dataset": "supplied",
+      "beforeMs": 16103,
+      "afterMs": 17371,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "supplied/双明手3.jpg/original",
+      "dataset": "supplied",
+      "beforeMs": 21384,
+      "afterMs": 19219,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "supplied/双明手4.jpg/original",
+      "dataset": "supplied",
+      "beforeMs": 8610,
+      "afterMs": 9812,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "supplied/双明手5.jpg/original",
+      "dataset": "supplied",
+      "beforeMs": 25136,
+      "afterMs": 20242,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "supplied/坐庄分析1.jpg/original",
+      "dataset": "supplied",
+      "beforeMs": 13111,
+      "afterMs": 20267,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "supplied/防守分析1.jpg/original",
+      "dataset": "supplied",
+      "beforeMs": 19448,
+      "afterMs": 25185,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-001-pala.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 7055,
+      "afterMs": 5611,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-002-bookos.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 7010,
+      "afterMs": 6287,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-003-corbel.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 6737,
+      "afterMs": 6545,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-004-gadugi.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 7595,
+      "afterMs": 5886,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-005-pala.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 6716,
+      "afterMs": 5196,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-006-bookos.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 3940,
+      "afterMs": 5868,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-007-corbel.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 6674,
+      "afterMs": 5983,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-008-gadugi.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 5993,
+      "afterMs": 5216,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-009-pala.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 7593,
+      "afterMs": 5315,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-010-bookos.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 8331,
+      "afterMs": 6044,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-011-corbel.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 7945,
+      "afterMs": 6136,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-012-gadugi.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 5739,
+      "afterMs": 6352,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-013-pala.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 4812,
+      "afterMs": 5928,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-016-gadugi.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 4598,
+      "afterMs": 6658,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-015-corbel.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 4678,
+      "afterMs": 6703,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-014-bookos.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 4125,
+      "afterMs": 7183,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-017-pala.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 4524,
+      "afterMs": 7090,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-018-bookos.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 3928,
+      "afterMs": 7853,
+      "beforeErrors": [
+        "S:missing:D8"
+      ],
+      "afterErrors": [
+        "S:missing:D8"
+      ],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-019-corbel.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 5170,
+      "afterMs": 7490,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-020-gadugi.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 4927,
+      "afterMs": 6987,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-021-pala.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 4208,
+      "afterMs": 7534,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-022-bookos.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 4482,
+      "afterMs": 7572,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-023-corbel.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 5010,
+      "afterMs": 7320,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-024-gadugi.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 4640,
+      "afterMs": 6463,
+      "beforeErrors": [
+        "S:missing:SK",
+        "S:missing:SJ"
+      ],
+      "afterErrors": [],
+      "recovered": [
+        "S:missing:SK",
+        "S:missing:SJ"
+      ],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-025-pala.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 5287,
+      "afterMs": 6790,
+      "beforeErrors": [
+        "E:missing:CJ"
+      ],
+      "afterErrors": [],
+      "recovered": [
+        "E:missing:CJ"
+      ],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-026-bookos.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 5526,
+      "afterMs": 6078,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-027-corbel.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 4900,
+      "afterMs": 6365,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-028-gadugi.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 4927,
+      "afterMs": 6575,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-029-pala.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 5221,
+      "afterMs": 6761,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-030-bookos.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 4961,
+      "afterMs": 6736,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-031-corbel.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 7158,
+      "afterMs": 7466,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-032-gadugi.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 5640,
+      "afterMs": 5819,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-033-pala.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 6010,
+      "afterMs": 6083,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-034-bookos.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 7650,
+      "afterMs": 6715,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-035-corbel.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 5974,
+      "afterMs": 5551,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-036-gadugi.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 6390,
+      "afterMs": 5747,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-037-pala.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 6500,
+      "afterMs": 5080,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-038-bookos.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 6989,
+      "afterMs": 6301,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-039-corbel.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 7116,
+      "afterMs": 6914,
+      "beforeErrors": [
+        "E:missing:DQ"
+      ],
+      "afterErrors": [
+        "E:missing:DQ"
+      ],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-040-gadugi.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 6261,
+      "afterMs": 5699,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-041-pala.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 6660,
+      "afterMs": 6738,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-042-bookos.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 5788,
+      "afterMs": 7044,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-043-corbel.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 7395,
+      "afterMs": 8722,
+      "beforeErrors": [
+        "S:missing:HQ"
+      ],
+      "afterErrors": [
+        "S:missing:HQ"
+      ],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-044-gadugi.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 6542,
+      "afterMs": 6854,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-045-pala.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 6746,
+      "afterMs": 6990,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-046-bookos.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 7415,
+      "afterMs": 7782,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-047-corbel.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 6841,
+      "afterMs": 6924,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-048-gadugi.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 7357,
+      "afterMs": 7025,
+      "beforeErrors": [
+        "S:missing:CJ"
+      ],
+      "afterErrors": [],
+      "recovered": [
+        "S:missing:CJ"
+      ],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-049-pala.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 7196,
+      "afterMs": 6697,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-050-bookos.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 7472,
+      "afterMs": 7357,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-051-corbel.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 6787,
+      "afterMs": 6712,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-052-gadugi.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 5996,
+      "afterMs": 6137,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-053-pala.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 6145,
+      "afterMs": 6452,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-054-bookos.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 6287,
+      "afterMs": 6921,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-055-corbel.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 6956,
+      "afterMs": 7368,
+      "beforeErrors": [
+        "E:missing:DQ"
+      ],
+      "afterErrors": [
+        "E:missing:DQ"
+      ],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-056-gadugi.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 6142,
+      "afterMs": 6117,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-057-pala.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 5871,
+      "afterMs": 6363,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-058-bookos.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 6112,
+      "afterMs": 7390,
+      "beforeErrors": [
+        "W:missing:C8",
+        "W:extra:C3"
+      ],
+      "afterErrors": [
+        "W:missing:C8",
+        "W:extra:C3"
+      ],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-059-corbel.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 7153,
+      "afterMs": 7865,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-060-gadugi.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 6020,
+      "afterMs": 6867,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-061-pala.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 7484,
+      "afterMs": 7474,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-062-bookos.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 6654,
+      "afterMs": 6815,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-063-corbel.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 6847,
+      "afterMs": 7017,
+      "beforeErrors": [
+        "E:missing:SQ",
+        "W:missing:CQ"
+      ],
+      "afterErrors": [
+        "E:missing:SQ",
+        "W:missing:CQ"
+      ],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-064-gadugi.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 5518,
+      "afterMs": 6186,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-065-pala.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 6016,
+      "afterMs": 6093,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-066-bookos.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 5765,
+      "afterMs": 6429,
+      "beforeErrors": [
+        "W:missing:C8",
+        "W:extra:C3"
+      ],
+      "afterErrors": [
+        "W:missing:C8",
+        "W:extra:C3"
+      ],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-067-corbel.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 6528,
+      "afterMs": 7530,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-068-gadugi.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 5911,
+      "afterMs": 6807,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-069-pala.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 6352,
+      "afterMs": 7568,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-070-bookos.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 6660,
+      "afterMs": 7373,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-071-corbel.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 6287,
+      "afterMs": 7344,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-072-gadugi.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 6766,
+      "afterMs": 7137,
+      "beforeErrors": [
+        "S:missing:HK",
+        "S:missing:HJ",
+        "W:missing:CK",
+        "W:missing:CJ"
+      ],
+      "afterErrors": [],
+      "recovered": [
+        "S:missing:HK",
+        "S:missing:HJ",
+        "W:missing:CK",
+        "W:missing:CJ"
+      ],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-073-pala.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 6383,
+      "afterMs": 6694,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-074-bookos.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 6523,
+      "afterMs": 6302,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-075-corbel.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 7688,
+      "afterMs": 7482,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-076-gadugi.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 6335,
+      "afterMs": 6990,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-077-pala.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 6256,
+      "afterMs": 6583,
+      "beforeErrors": [
+        "E:missing:DJ"
+      ],
+      "afterErrors": [],
+      "recovered": [
+        "E:missing:DJ"
+      ],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-078-bookos.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 6920,
+      "afterMs": 7187,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-079-corbel.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 7183,
+      "afterMs": 7227,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "independent/dds-080-gadugi.ttf.png/original",
+      "dataset": "independent",
+      "beforeMs": 6507,
+      "afterMs": 7173,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "holdout/dds-081-pala.ttf.png/original",
+      "dataset": "holdout",
+      "beforeMs": 6657,
+      "afterMs": 6943,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "holdout/dds-083-corbel.ttf.png/original",
+      "dataset": "holdout",
+      "beforeMs": 4873,
+      "afterMs": 6490,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "holdout/dds-082-bookos.ttf.png/original",
+      "dataset": "holdout",
+      "beforeMs": 5492,
+      "afterMs": 7184,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "holdout/dds-084-gadugi.ttf.png/original",
+      "dataset": "holdout",
+      "beforeMs": 6398,
+      "afterMs": 6745,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "holdout/dds-085-pala.ttf.png/original",
+      "dataset": "holdout",
+      "beforeMs": 7010,
+      "afterMs": 6413,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "holdout/dds-086-bookos.ttf.png/original",
+      "dataset": "holdout",
+      "beforeMs": 7646,
+      "afterMs": 6916,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "holdout/dds-087-corbel.ttf.png/original",
+      "dataset": "holdout",
+      "beforeMs": 7620,
+      "afterMs": 6744,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "holdout/dds-088-gadugi.ttf.png/original",
+      "dataset": "holdout",
+      "beforeMs": 6371,
+      "afterMs": 6265,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "holdout/dds-089-pala.ttf.png/original",
+      "dataset": "holdout",
+      "beforeMs": 5976,
+      "afterMs": 6475,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "holdout/dds-090-bookos.ttf.png/original",
+      "dataset": "holdout",
+      "beforeMs": 6599,
+      "afterMs": 7212,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "holdout/dds-091-corbel.ttf.png/original",
+      "dataset": "holdout",
+      "beforeMs": 6190,
+      "afterMs": 7086,
+      "beforeErrors": [
+        "E:missing:CQ"
+      ],
+      "afterErrors": [
+        "E:missing:CQ"
+      ],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "holdout/dds-092-gadugi.ttf.png/original",
+      "dataset": "holdout",
+      "beforeMs": 6333,
+      "afterMs": 6989,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "holdout/dds-093-pala.ttf.png/original",
+      "dataset": "holdout",
+      "beforeMs": 6117,
+      "afterMs": 6080,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "holdout/dds-094-bookos.ttf.png/original",
+      "dataset": "holdout",
+      "beforeMs": 6809,
+      "afterMs": 6902,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "holdout/dds-095-corbel.ttf.png/original",
+      "dataset": "holdout",
+      "beforeMs": 7463,
+      "afterMs": 6753,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "holdout/dds-096-gadugi.ttf.png/original",
+      "dataset": "holdout",
+      "beforeMs": 7331,
+      "afterMs": 6751,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "holdout/dds-097-pala.ttf.png/original",
+      "dataset": "holdout",
+      "beforeMs": 6578,
+      "afterMs": 7030,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "holdout/dds-098-bookos.ttf.png/original",
+      "dataset": "holdout",
+      "beforeMs": 7311,
+      "afterMs": 6765,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "holdout/dds-099-corbel.ttf.png/original",
+      "dataset": "holdout",
+      "beforeMs": 7422,
+      "afterMs": 6808,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "holdout/dds-100-gadugi.ttf.png/original",
+      "dataset": "holdout",
+      "beforeMs": 6733,
+      "afterMs": 5293,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "variants/双明手1.jpg/960",
+      "dataset": "variants",
+      "beforeMs": 10735,
+      "afterMs": 8646,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "variants/双明手1.jpg/720",
+      "dataset": "variants",
+      "beforeMs": 8219,
+      "afterMs": 8160,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "variants/双明手2.jpg/960",
+      "dataset": "variants",
+      "beforeMs": 32644,
+      "afterMs": 24623,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "variants/双明手2.jpg/720",
+      "dataset": "variants",
+      "beforeMs": 31376,
+      "afterMs": 24317,
+      "beforeErrors": [
+        "N:missing:CK"
+      ],
+      "afterErrors": [
+        "N:missing:CK"
+      ],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "variants/双明手3.jpg/960",
+      "dataset": "variants",
+      "beforeMs": 34769,
+      "afterMs": 26146,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "variants/双明手4.jpg/960",
+      "dataset": "variants",
+      "beforeMs": 10260,
+      "afterMs": 7878,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "variants/双明手4.jpg/720",
+      "dataset": "variants",
+      "beforeMs": 8670,
+      "afterMs": 7838,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "variants/双明手3.jpg/720",
+      "dataset": "variants",
+      "beforeMs": 33195,
+      "afterMs": 20283,
+      "beforeErrors": [],
+      "afterErrors": [],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "variants/双明手5.jpg/960",
+      "dataset": "variants",
+      "beforeMs": 25938,
+      "afterMs": 21698,
+      "beforeErrors": [
+        "N:missing:D7",
+        "S:missing:DT"
+      ],
+      "afterErrors": [
+        "N:missing:D7",
+        "S:missing:DT"
+      ],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "variants/双明手5.jpg/720",
+      "dataset": "variants",
+      "beforeMs": 25174,
+      "afterMs": 22784,
+      "beforeErrors": [
+        "N:missing:HT",
+        "N:missing:DJ",
+        "N:missing:D7",
+        "N:missing:C7",
+        "N:missing:C5",
+        "S:missing:DT",
+        "S:missing:D8",
+        "S:missing:D5",
+        "S:missing:D2",
+        "S:missing:CA",
+        "S:missing:C8"
+      ],
+      "afterErrors": [
+        "N:missing:HT",
+        "N:missing:DJ",
+        "N:missing:D7",
+        "N:missing:C7",
+        "N:missing:C5",
+        "S:missing:DT",
+        "S:missing:D8",
+        "S:missing:D5",
+        "S:missing:D2",
+        "S:missing:CA",
+        "S:missing:C8"
+      ],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "variants/坐庄分析1.jpg/960",
+      "dataset": "variants",
+      "beforeMs": 23780,
+      "afterMs": 21622,
+      "beforeErrors": [
+        "metadata"
+      ],
+      "afterErrors": [
+        "metadata"
+      ],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "variants/坐庄分析1.jpg/720",
+      "dataset": "variants",
+      "beforeMs": 24613,
+      "afterMs": 17972,
+      "beforeErrors": [
+        "N:missing:CA",
+        "N:extra:C4",
+        "S:missing:SQ",
+        "S:missing:S8"
+      ],
+      "afterErrors": [
+        "N:missing:CA",
+        "N:extra:C4",
+        "S:missing:SQ",
+        "S:missing:S8"
+      ],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "variants/防守分析1.jpg/960",
+      "dataset": "variants",
+      "beforeMs": 28399,
+      "afterMs": 18909,
+      "beforeErrors": [
+        "S:missing:C3",
+        "metadata"
+      ],
+      "afterErrors": [
+        "S:missing:C3",
+        "metadata"
+      ],
+      "recovered": [],
+      "regressions": []
+    },
+    {
+      "image": "variants/防守分析1.jpg/720",
+      "dataset": "variants",
+      "beforeMs": 27740,
+      "afterMs": 16850,
+      "beforeErrors": [
+        "S:missing:C3",
+        "S:extra:DJ",
+        "metadata"
+      ],
+      "afterErrors": [
+        "S:missing:C3",
+        "S:extra:DJ",
+        "metadata"
+      ],
+      "recovered": [],
+      "regressions": []
+    }
+  ]
+}

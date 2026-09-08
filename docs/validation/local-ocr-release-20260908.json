@@ -1,0 +1,22 @@
+{
+  "url": "http://127.0.0.1:4173/",
+  "passed": true,
+  "ocrFiles": [
+    "双明手4.jpg",
+    "防守分析1.jpg",
+    "双明手1.jpg",
+    "双明手2.jpg",
+    "双明手3.jpg",
+    "双明手5.jpg",
+    "坐庄分析1.jpg",
+    "dds-024-gadugi.ttf.png",
+    "dds-039-corbel.ttf.png",
+    "dds-058-bookos.ttf.png",
+    "dds-091-corbel.ttf.png"
+  ],
+  "verifiedVisibleCards": 519,
+  "partialState": "3NTW · N:D5 E:DT",
+  "pageErrors": [],
+  "externalRequests": [],
+  "imageUploads": []
+}
