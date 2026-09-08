@@ -15,3 +15,14 @@ playwright-report/
 artifacts/
 .playwright-cli/
 *.tsbuildinfo
+
+# Local-only source material and development records
+/images/
+/logo/
+/BBO方向实例.jpg
+/agent.md
+/AGENTS.md
+/docs/ui-review.md
+/docs/validation/*
+!/docs/validation/status.md
+/output/

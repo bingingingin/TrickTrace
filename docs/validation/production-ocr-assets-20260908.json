@@ -1,7 +1,0 @@
-{
-  "url": "https://tricktrace.pages.dev/",
-  "status": 200,
-  "expectedEntry": "/assets/index-X7gCuXga.js",
-  "actualEntry": "/assets/index-X7gCuXga.js",
-  "matches": true
-}
