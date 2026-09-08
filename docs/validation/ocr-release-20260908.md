@@ -38,4 +38,8 @@
 - `坐庄分析1.jpg` 的 720 像素变体仍有 CA/4 混淆和 SQ、S8 漏认；960 像素变体的局况需要核对。
 - `防守分析1.jpg` 的两个变体手牌已全部正确，但 960 像素的当前墩、720 像素的定约庄家仍需核对。
 
-发布地址及生产验收见后续发布记录；测试图片不包含在公开构建中。
+## 生产发布
+
+代码提交 `5520b85` 已推送并核对远端。部署版本为 [c338858f.tricktrace.pages.dev](https://c338858f.tricktrace.pages.dev)，生产入口为 [tricktrace.pages.dev](https://tricktrace.pages.dev/)。线上入口与本地构建均加载 `index-X7gCuXga.js`。
+
+生产上传验收同样通过 11 图、519 张牌及已标注状态，页面错误、跨站请求、图片 POST 均为零。见 [production-ocr-release-20260908.json](production-ocr-release-20260908.json) 与 [production-ocr-assets-20260908.json](production-ocr-assets-20260908.json)。测试图片不包含在公开构建中；上述极低清剩余问题仍适用于本次发布。
