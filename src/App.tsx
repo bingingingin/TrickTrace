@@ -174,11 +174,12 @@ export default function App() {
     [leadInputValid, setLeadInputValid] = useState(true),
     [leadCount, setLeadCount] = useState(1000),
     [leadConstraints, setLeadConstraints] = useState<Constraint[]>([]),
+    [sampleInputValid, setSampleInputValid] = useState(true),
     [singleDummyEnabled, setSingleDummyEnabled] = useState(false),
     [sampleCount, setSampleCount] = useState(128),
     [sampleSeed, setSampleSeed] = useState(20260905),
     [objective, setObjective] = useState<"contract" | "tricks">("contract"),
-    [constraints, setConstraints] = useState("[]"),
+    [sampleConstraints, setSampleConstraints] = useState<Constraint[]>([]),
     [observed, setObserved] = useState(""),
     [tableError, setTableError] = useState(""),
     [review, setReview] = useState<(Move & { seat: Seat })[] | null>(null);
@@ -1362,28 +1363,30 @@ export default function App() {
                   </label>
                   <details>
                     <summary>叫牌与牌型约束</summary>
-                    <p>
-                      原始手牌大牌点和花色长度。例如：
-                      <code>
-                        {'[{"seat":"E","minHcp":12,"lengths":{"S":[5,7]}}]'}
-                      </code>
-                    </p>
-                    <textarea
-                      value={constraints}
-                      onChange={(e) => setConstraints(e.target.value)}
-                    />
+                    <fieldset disabled={!!busy} className="lead-config">
+                      <LeadConstraints
+                        key={`${board.id}-sample`}
+                        declarer={position.contract.declarer}
+                        dealer={board.dealer}
+                        auction={board.auction}
+                        vulnerability={board.vulnerability}
+                        editableSeats={SEATS.filter(s=>position.hands[s]===null)}
+                        auctionLabel="两家牌分析叫牌"
+                        onValidityChange={setSampleInputValid}
+                        onChange={cs=>{setSampleConstraints(cs);setSample(null);}}
+                      />
+                    </fieldset>
                   </details>
                   <button
                     className="primary"
-                    disabled={full || !!busy}
+                    disabled={full || !!busy || !sampleInputValid}
                     onClick={() => {
                       try {
-                        const cs = JSON.parse(constraints) as Constraint[];
-                        if (!Array.isArray(cs)) throw Error("约束必须为数组");
+                        validateConstraints(sampleConstraints);
                         void task(
                           "采样并比较候选牌",
                           "sample",
-                          [position, sampleCount, sampleSeed, cs, objective],
+                          [position, sampleCount, sampleSeed, sampleConstraints, objective],
                           setSample,
                         );
                       } catch (e) {

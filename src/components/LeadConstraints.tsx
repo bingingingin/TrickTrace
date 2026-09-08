@@ -12,13 +12,16 @@ function RangeField({label,value,max,onChange,onError}:{label:string;value:[numb
   try{const r=range(draft,max);setError('');onError('');if(r[0]!==value[0]||r[1]!==value[1])onChange(r);}catch(x){const message=(x as Error).message;setError(message);onError(message);}
  }}/>{error&&<small role="alert">{error}</small>}</label>;
 }
-export default function LeadConstraints({leader,declarer,dealer,auction,vulnerability,onChange,onValidityChange}:{leader:Seat;declarer:Seat;dealer:Seat;auction:string[];vulnerability:Board['vulnerability'];onChange:(cs:Constraint[])=>void;onValidityChange:(ok:boolean)=>void}){
- const [calls,setCalls]=useState(auction.join(' ')),[overrides,setOverrides]=useState<Constraint[]>([]),[seat,setSeat]=useState<Seat>(declarer),[level,setLevel]=useState(1),[fieldErrors,setFieldErrors]=useState<Record<string,string>>({});
+export default function LeadConstraints({leader,declarer,dealer,auction,vulnerability,editableSeats,onChange,onValidityChange,auctionLabel='首攻分析叫牌'}:{leader?:Seat;declarer:Seat;dealer:Seat;auction:string[];vulnerability:Board['vulnerability'];editableSeats?:Seat[];onChange:(cs:Constraint[])=>void;onValidityChange:(ok:boolean)=>void;auctionLabel?:string}){
+ const selectable=editableSeats??SEATS.filter(s=>s!==leader);
+ const initialSeat=selectable.includes(declarer)?declarer:(selectable[0]??declarer);
+ const [calls,setCalls]=useState(auction.join(' ')),[overrides,setOverrides]=useState<Constraint[]>([]),[seat,setSeat]=useState<Seat>(initialSeat),[level,setLevel]=useState(1),[fieldErrors,setFieldErrors]=useState<Record<string,string>>({});
  const inference=useMemo(()=>inferCCBA(calls,dealer,vulnerability),[calls,dealer,vulnerability]);
  const value=useMemo(()=>applyOverrides(inference.constraints,overrides),[inference,overrides]);
  const changeRef=useRef(onChange);changeRef.current=onChange;
  useEffect(()=>changeRef.current(value),[value]);
  useEffect(()=>setCalls(auction.join(' ')),[auction.join(' ')]);
+ useEffect(()=>{if(!selectable.includes(seat)&&selectable.length){setSeat(selectable[0]);setFieldErrors({});}},[selectable.join(','),seat]);
  const update=(s:Seat,patch:Partial<Constraint>)=>setOverrides(old=>{const prior=old.find(c=>c.seat===s);return [...old.filter(c=>c.seat!==s),{...prior,seat:s,...patch,...(patch.lengths?{lengths:{...prior?.lengths,...patch.lengths}}:{})}];});
  let validation='';try{validateConstraints(value);}catch(e){validation=(e as Error).message;}
  const invalid=!!validation||!!inference.error||Object.values(fieldErrors).some(Boolean);
@@ -40,7 +43,7 @@ export default function LeadConstraints({leader,declarer,dealer,auction,vulnerab
   <div className="constraint-presets" aria-label="叫牌阶数">{[1,2,3,4,5,6,7].map(n=><button key={n} aria-pressed={level===n} onClick={()=>setLevel(n)}>{n}</button>)}</div>
   <div className="constraint-presets">{['C','D','H','S','NT'].map(s=><button key={s} disabled={!canAdd(`${level}${s}`)} onClick={()=>add(`${level}${s}`)}>{level}{s==='NT'?'NT':SYMBOL[s as keyof typeof SYMBOL]}</button>)}</div>
   <div className="constraint-presets">{[['P','不叫'],['X','加倍'],['XX','再加倍']].map(([t,label])=><button key={t} disabled={!canAdd(t)} onClick={()=>add(t)}>{label}</button>)}<button disabled={!tokens.length} onClick={()=>setCalls(tokens.slice(0,-1).join(' '))}>撤销</button><button disabled={!tokens.length} onClick={()=>setCalls('')}>清空叫牌</button></div>
-  <label>粘贴 / 编辑叫牌<textarea rows={2} aria-label="首攻分析叫牌" value={calls} onChange={e=>setCalls(e.target.value)} placeholder="P P 1NT P 3NT P P P"/></label>
+  <label>粘贴 / 编辑叫牌<textarea rows={2} aria-label={auctionLabel} value={calls} onChange={e=>setCalls(e.target.value)} placeholder="P P 1NT P 3NT P P P"/></label>
   <p className="ccba-status">{CCBA_VERSION} · 自动联动 · {vulnerability==='None'?'双方无局':vulnerability==='All'?'双方有局':vulnerability==='NS'?'南北有局':'东西有局'}</p>
   <p className="hint">每次叫牌改动会重算下方条件；手动覆盖会保留。不修改当前定约，不根据“不叫”硬设点力上限。</p>
   {inference.meanings.some(m=>!m.applied)&&<p className="constraint-warning">有 {inference.meanings.filter(m=>!m.applied).length} 个叫品尚未覆盖，请展开说明并手动补充。</p>}
@@ -49,8 +52,8 @@ export default function LeadConstraints({leader,declarer,dealer,auction,vulnerab
    <a href={CCBA_SOURCE} target="_blank" rel="noreferrer">官网 CCBA v2.2 体系说明</a>
   </details>
   {overrides.length>0&&<button className="light-button" onClick={()=>{setOverrides([]);setFieldErrors({});}}>恢复全部 CCBA 推断（清除手动覆盖）</button>}
-  <div className="constraint-presets" aria-label="选择约束方位">{SEATS.filter(s=>s!==leader).map(s=><button key={s} aria-pressed={seat===s} onClick={()=>{setSeat(s);setFieldErrors({});}}>{LABEL[s]} · {s===declarer?'庄家':s===next(declarer,2)?'明手':'同伴'}{value.some(x=>x.seat===s)?' ●':''}</button>)}</div>
-  <div key={seat} className="lead-seat-fields">
+  <div className="constraint-presets" aria-label="选择约束方位">{selectable.map(s=><button key={s} aria-pressed={seat===s} onClick={()=>{setSeat(s);setFieldErrors({});}}>{LABEL[s]} · {s===declarer?'庄家':s===next(declarer,2)?'明手':leader&&s===next(leader,2)?'首攻同伴':'防守'}{value.some(x=>x.seat===s)?' ●':''}</button>)}</div>
+  {selectable.length>0&&<div key={seat} className="lead-seat-fields">
    <p className="hint">{overrides.some(x=>x.seat===seat)?'来源：CCBA 推断 + 手动覆盖（改叫牌时保留）':inference.constraints.some(x=>x.seat===seat)?'来源：CCBA 叫牌推断':'尚无可确定的点力或长度条件'}</p>
    <RangeField label={`${seat} 大牌点`} value={[c.minHcp??0,c.maxHcp??37]} max={37} onError={fieldError('hcp')} onChange={r=>update(seat,{minHcp:r[0],maxHcp:r[1]})}/>
    <p className="hint">空白不限；可填 12-17、5+ 或精确数值，离开输入框后应用。</p>
@@ -58,7 +61,7 @@ export default function LeadConstraints({leader,declarer,dealer,auction,vulnerab
    <div className="constraint-presets">{[['balanced','均型'],['shape 4432 5332','4432 / 5332'],['s 5+ OR h 5+','至少五张高花']].map(([t,label])=><button key={t} aria-pressed={(c.expression??'').split(',').map(x=>x.trim()).includes(t)} onClick={()=>toggle(t)}>{label}</button>)}</div>
    <details><summary>高级条件：牌型、关键张与控制</summary><textarea aria-label={`${seat} 牌型与牌张条件`} value={c.expression??''} onChange={e=>update(seat,{expression:e.target.value})} placeholder="例如 s AK, no clubs Q"/><p>逗号或 AND 表示同时满足，OR 表示任选，括号保留分支。支持 balanced（均型）、s AK、no clubs Q、clubs hcp 5+；keys s 2 表示黑桃为将的两个关键张，aces 1 表示一个 A，controls 3+ 表示至少三控制（A=2、K=1）。这些条件会实际筛选模拟手牌。</p></details>
    <div className="constraint-presets"><button onClick={()=>{setOverrides(old=>old.filter(x=>x.seat!==seat));setFieldErrors({});}}>恢复{LABEL[seat]}家推断</button><button onClick={()=>{update(seat,{minHcp:0,maxHcp:37,lengths:{S:[0,13],H:[0,13],D:[0,13],C:[0,13]},expression:''});setFieldErrors({});}}>本家设为不限</button></div>
-  </div>
+  </div>}
   <RangeField label="庄明联手点力" value={value.find(c=>c.seat===declarer)?.partnershipHcp??[0,40]} max={40} onError={fieldError('partnership')} onChange={r=>update(declarer,{partnershipHcp:r})}/>
   {(inference.error||validation)&&<p role="alert" className="constraint-error">{inference.error||validation}</p>}
  </section>;
