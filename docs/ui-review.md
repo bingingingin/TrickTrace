@@ -5,7 +5,7 @@
 ## 本次实现
 
 - 页眉、页脚、浏览器图标和 Apple touch icon 使用 `logo/墩迹纯logo.png`；分享图片使用 `logo/墩迹宣传图.png`。运行时副本放在 `public/brand/`，保留原素材。
-- 顶部明暗开关保存到 `tricktrace.theme`，与牌局数据独立。首次按系统主题初始化，选择后刷新保持；首屏脚本提前应用主题，减少闪白。
+- 顶部明暗开关保存到 `tricktrace.theme`，与牌局数据独立。首次默认浅色，选择后刷新保持；首屏脚本提前应用主题，减少闪白。
 - `src/theme.css` 统一页面、表面、输入、选中和文字颜色，覆盖手牌、结果、编辑器与提示状态；浏览器主题色同步更新。
 - 深色模式页眉和页脚使用新生成的 `logo/墩迹纯logo-白图黑底.png`，运行时资源为 `public/brand/tricktrace-mark-dark.png`；浅色模式继续使用原彩色 Logo。两版随主题开关切换。
 

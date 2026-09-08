@@ -96,9 +96,7 @@ function initialTheme(): Theme {
   } catch {
     /* Theme persistence is optional. */
   }
-  return window.matchMedia?.("(prefers-color-scheme: dark)").matches
-    ? "dark"
-    : "light";
+  return "light";
 }
 function initial(): Stored {
   try {
