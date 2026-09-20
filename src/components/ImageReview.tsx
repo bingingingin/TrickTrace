@@ -1,3 +1,4 @@
+import { translate } from "../i18n";
 import { useState } from "react";
 import type { Recognition } from "../vision/recognize";
 import { SYMBOL, type Suit } from "../core/types";
@@ -23,12 +24,10 @@ export default function ImageReview({
             type="checkbox"
             checked={show}
             onChange={(e) => setShow(e.target.checked)}
-          />
-          显示识别位置
-        </label>
+          />{translate("显示识别位置")}</label>
       )}
       <div className="ocr-image">
-        <img src={url} alt="识别原图，供对照校验" />
+        <img src={url} alt={translate("识别原图，供对照校验")} />
         {show &&
           recognition?.candidates.map((c, i) => (
             <button
@@ -42,22 +41,18 @@ export default function ImageReview({
                 height: `${c.box[3] * 100}%`,
               }}
               onClick={() => setSelected(i)}
-              aria-label={`候选 ${c.seat} ${name(c.card)}，置信度 ${Math.round(c.confidence * 100)}%`}
-              title={`${c.seat} ${name(c.card)}`}
+              aria-label={translate(`候选 ${c.seat} ${name(c.card)}，置信度 ${Math.round(c.confidence * 100)}%`)}
+              title={translate(`${c.seat} ${name(c.card)}`)}
             />
           ))}
       </div>
       {candidate && (
-        <p className="ocr-selection">
-          画面方位 {candidate.seat} · {name(candidate.card)} · 识别置信度{" "}
+        <p className="ocr-selection">{translate("画面方位 ")}{translate(candidate.seat)} · {name(candidate.card)}{translate(" · 识别置信度")}{" "}
           {Math.round(candidate.confidence * 100)}%
         </p>
       )}
       {recognition && (
-        <p>
-          共 {recognition.candidates.length}{" "}
-          个候选。点击框查看识别内容；方框不代表正确性已验证。请在选牌面板修正牌张，并核对实际方位、定约和当前墩。
-        </p>
+        <p>{translate("共 ")}{recognition.candidates.length}{" "}{translate("个候选。点击框查看识别内容；方框不代表正确性已验证。请在选牌面板修正牌张，并核对实际方位、定约和当前墩。")}</p>
       )}
     </div>
   );

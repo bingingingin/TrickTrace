@@ -1,3 +1,4 @@
+import { translate, useLocale } from "./i18n";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Upload,
@@ -120,7 +121,7 @@ function initial(): Stored {
 }
 const fmt = (c: Card) => SYMBOL[suit(c)] + c.slice(1).replace("T", "10");
 const contractText = (p: Position) =>
-  `${p.contract.level}${p.contract.strain === "NT" ? "NT" : SYMBOL[p.contract.strain]}${"X".repeat(p.contract.doubled)} · ${LABEL[p.contract.declarer]}`;
+  `${p.contract.level}${p.contract.strain === "NT" ? "NT" : SYMBOL[p.contract.strain]}${"X".repeat(p.contract.doubled)} · ${translate(LABEL[p.contract.declarer])}`;
 function download(name: string, text: string, mime = "text/plain") {
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([text], { type: mime }));
@@ -143,6 +144,11 @@ function seedSession(b: Board): Session {
   };
 }
 export default function App() {
+  const [locale, setLocale] = useLocale();
+  useEffect(() => {
+    document.documentElement.lang = locale;
+    document.title = locale === "en" ? "TrickTrace · Bridge Analysis" : "墩迹 TrickTrace · 桥牌分析";
+  }, [locale]);
   const [store, setStore] = useState<Stored>(initial),
     [theme, setTheme] = useState<Theme>(initialTheme),
     [editing, setEditing] = useState<Board | null>(null),
@@ -424,7 +430,7 @@ export default function App() {
     setPaste(false);
   }
   function deleteBoard(index: number) {
-    if(!window.confirm(`删除“${store.boards[index].name}”及其播放分支？此操作无法撤销。`))return;
+    if(!window.confirm(translate("删除“{0}”及其播放分支？此操作无法撤销。", [store.boards[index].name])))return;
     setAuto(false);
     setStore((old) => {
       const removed = old.boards[index],
@@ -445,7 +451,7 @@ export default function App() {
     });
   }
   function clearBoards() {
-    if(!window.confirm(`清空全部 ${store.boards.length} 副牌例及其播放分支？此操作无法撤销，清空后保留一副空白牌局。`))return;
+    if(!window.confirm(translate(`清空全部 ${store.boards.length} 副牌例及其播放分支？此操作无法撤销，清空后保留一副空白牌局。`)))return;
     setAuto(false);setAutoMode(false);gen.current++;cancelAll();setBusy('');
     setSingleDummyEnabled(false);setTab('moves');setEditing(null);
     const blank=boardFromHands(['?','?','?','?']);Object.assign(blank,boardMetadata(1));blank.name='新牌局 1';
@@ -602,18 +608,17 @@ export default function App() {
       <div className={`hand hand-${s} ${active ? "active" : ""}`} key={s}>
         <div className="hand-heading">
           <span>
-            <b>{s}</b> {LABEL[s]}家{" "}
+            <b>{s}</b> {translate(LABEL[s])}{translate("家")}{" "}
             {s === position.contract.declarer ? (
-              <em>庄家</em>
+              <em>{translate("庄家")}</em>
             ) : s === next(position.contract.declarer, 2) ? (
-              <em>明手</em>
+              <em>{translate("明手")}</em>
             ) : null}
           </span>
-          <small>{position.hands[s]?.length ?? "?"} 张</small>
+          <small>{position.hands[s]?.length ?? "?"}{translate(" 张")}</small>
         </div>
         {position.hands[s] === null ? (
-          <div className="unknown-hand">
-            未知手牌 <span>保留信息边界</span>
+          <div className="unknown-hand">{translate("未知手牌 ")}<span>{translate("保留信息边界")}</span>
           </div>
         ) : (
           SUITS.map((t) => (
@@ -633,9 +638,8 @@ export default function App() {
                       disabled={!enabled}
                       onClick={() => playCard(c)}
                       title={
-                        m
-                          ? `${fmt(c)}：庄家 ${m.tricks} 墩${m.optimal ? " · 最优" : ` · 损失 ${m.loss} 墩`}`
-                          : fmt(c)
+                        m ? translate("{0}：庄家 {1} 墩{2}", [fmt(c), m.tricks,
+                          m.optimal ? translate(" · 最优") : translate(" · 损失 {0} 墩", [m.loss])]) : fmt(c)
                       }
                     >
                       {c[1] === "T" ? "10" : c[1]}
@@ -674,29 +678,43 @@ export default function App() {
       }}
     >
       <header>
-        <a className="brand" href="#" aria-label="墩迹 TrickTrace 首页">
+        <a className="brand" href="#" aria-label={translate("墩迹 TrickTrace 首页")}>
           <img
             className="brand-mark"
             src={theme === "dark" ? "/brand/tricktrace-mark-dark.png" : "/brand/tricktrace-mark.png"}
             alt=""
           />
-          <span>
-            墩迹 <b>TrickTrace</b>
-            <small>循牌而行，见墩之迹。</small>
+          <span>{translate("墩迹 ")}<b>TrickTrace</b>
+            <small>{translate("循牌而行，见墩之迹。")}</small>
           </span>
         </a>
         <nav>
-          <span className="nav-active">分析工作台</span>
-          <button onClick={() => setHelp(true)}>
-            使用指南 <ArrowUpRight size={15} />
+          <span className="nav-active">{translate("分析工作台")}</span>
+          <button onClick={() => setHelp(true)}>{translate("使用指南 ")}<ArrowUpRight size={15} />
+          </button>
+        </nav>
+        <div className="header-preferences">
+          <span className="local-badge">
+            <span />{translate(" 本地计算 · 图片不上传")}
+          </span>
+          <button
+            className="language-toggle"
+            type="button"
+            aria-label={locale === "zh-CN" ? "Switch to English" : "切换到中文"}
+            title={locale === "zh-CN" ? "Switch to English" : "切换到中文"}
+            onClick={() => setLocale(locale === "zh-CN" ? "en" : "zh-CN")}
+          >
+            <span lang="zh-CN" className={locale === "zh-CN" ? "selected" : ""}>中</span>
+            <span aria-hidden="true">/</span>
+            <span lang="en" className={locale === "en" ? "selected" : ""}>EN</span>
           </button>
           <button
             className="theme-toggle"
             type="button"
             role="switch"
             aria-checked={theme === "dark"}
-            aria-label={theme === "dark" ? "切换到浅色模式" : "切换到深色模式"}
-            title={theme === "dark" ? "切换到浅色模式" : "切换到深色模式"}
+            aria-label={translate(theme === "dark" ? "切换到浅色模式" : "切换到深色模式")}
+            title={translate(theme === "dark" ? "切换到浅色模式" : "切换到深色模式")}
             onClick={() => setTheme((value) => (value === "dark" ? "light" : "dark"))}
           >
             <span className="theme-toggle-track" aria-hidden="true">
@@ -705,13 +723,10 @@ export default function App() {
               </span>
             </span>
             <span className="theme-toggle-label">
-              {theme === "dark" ? "深色" : "浅色"}
+              {translate(theme === "dark" ? "深色" : "浅色")}
             </span>
           </button>
-        </nav>
-        <span className="local-badge">
-          <span /> 本地计算 · 图片不上传
-        </span>
+        </div>
       </header>
       <main>
         <aside className="sidebar">
@@ -725,9 +740,9 @@ export default function App() {
             disabled={!!busy}
           >
             <ScanLine size={29} />
-            <strong>导入你的牌局</strong>
-            <span>截图、PBN、DLM 或 LIN</span>
-            <small>拖放到此处，或直接粘贴截图</small>
+            <strong>{translate("导入你的牌局")}</strong>
+            <span>{translate("截图、PBN、DLM 或 LIN")}</span>
+            <small>{translate("拖放到此处，或直接粘贴截图")}</small>
           </button>
           <input
             hidden
@@ -750,11 +765,9 @@ export default function App() {
                 setEditing(b);
               }}
             >
-              <Plus size={16} /> 手动输入
-            </button>
+              <Plus size={16} />{translate(" 手动输入")}</button>
             <button onClick={() => setPaste(true)}>
-              <Copy size={15} /> 粘贴牌谱
-            </button>
+              <Copy size={15} />{translate(" 粘贴牌谱")}</button>
           </div>
           <button
             className={`sidebar-feature ${singleDummyEnabled ? "enabled" : ""}`}
@@ -769,11 +782,11 @@ export default function App() {
               <Focus size={18} />
             </span>
             <span>
-              <strong>单明手最佳首攻</strong>
+              <strong>{translate("单明手最佳首攻")}</strong>
               <small>
-                {singleDummyEnabled
+                {translate(singleDummyEnabled
                   ? "已开启 · 点击关闭"
-                  : "可选分析 · 默认关闭"}
+                  : "可选分析 · 默认关闭")}
               </small>
             </span>
             <i aria-hidden="true" />
@@ -791,22 +804,22 @@ export default function App() {
                   <span>
                     <strong>{b.name}</strong>
                     <small>
-                      {contractText(b.position)} ·{" "}
-                      {b.vulnerability === "None"
+                      {translate(contractText(b.position))} ·{" "}
+                      {translate(b.vulnerability === "None"
                         ? "双方无局"
-                        : b.vulnerability + " 有局"}
+                        : b.vulnerability + " 有局")}
                     </small>
                   </span>
                   {store.selected === i && <ArrowRight size={16} />}
                 </button>
                 <button
                   className="delete-board"
-                  aria-label={`删除 ${b.name}`}
-                  title={`删除 ${b.name}`}
+                  aria-label={translate("删除 {0}", [b.name])}
+                  title={translate("删除 {0}", [b.name])}
                   onClick={() => deleteBoard(i)}
                 >
                   <Trash2 size={14} />
-                  <span>删除</span>
+                  <span>{translate("删除")}</span>
                 </button>
               </div>
             ))}
@@ -821,8 +834,7 @@ export default function App() {
                 }
               }}
             >
-              <Download size={16} /> 导出 PBN
-            </button>
+              <Download size={16} />{translate(" 导出 PBN")}</button>
             <button
               onClick={() =>
                 download(
@@ -832,13 +844,8 @@ export default function App() {
                 )
               }
             >
-              <Layers size={16} /> 保存完整项目
-            </button>
-            <div className="footnote">
-              DDS 3 · 四家已知时精确求解
-              <br />
-              两家牌模式使用概率估计
-            </div>
+              <Layers size={16} />{translate(" 保存完整项目")}</button>
+            <div className="footnote">{translate("DDS 3 · 四家已知时精确求解")}<br />{translate("两家牌模式使用概率估计")}</div>
           </div>
         </aside>
         <section className="workspace">
@@ -848,8 +855,8 @@ export default function App() {
               <h1>{board.name}</h1>
             </div>
             <div className="board-actions">
-            <button className="light-button" onClick={()=>deleteBoard(store.selected)}><Trash2 size={15}/> 删除当前牌例</button>
-            <button className="light-button" onClick={clearBoards}><Trash2 size={15}/> 清空全部</button>
+            <button className="light-button" onClick={()=>deleteBoard(store.selected)}><Trash2 size={15}/>{translate(" 删除当前牌例")}</button>
+            <button className="light-button" onClick={clearBoards}><Trash2 size={15}/>{translate(" 清空全部")}</button>
             <button
               className="light-button"
               onClick={() => {
@@ -858,56 +865,50 @@ export default function App() {
                 setEditing(structuredClone(board));
               }}
             >
-              <Settings2 size={16} /> 编辑牌局
-            </button>
+              <Settings2 size={16} />{translate(" 编辑牌局")}</button>
             </div>
           </div>
           <div className="contract-bar">
-            <span className="board-badge">
-              第 {board.number ?? store.selected + 1} 副
-            </span>
+            <span className="board-badge">{translate("第 {0} 副", [board.number ?? store.selected + 1])}</span>
             <button
               className="contract-chip"
-              aria-label="修改定约"
+              aria-label={translate("修改定约")}
               onClick={() => {
                 setImageResult(null);
                 setImageURL("");
                 setEditing(structuredClone(board));
               }}
             >
-              {contractText(position)}
+              {translate(contractText(position))}
             </button>
-            <span>
-              发牌 <b>{board.dealer}</b>
+            <span>{translate("发牌 ")}<b>{translate(board.dealer)}</b>
             </span>
-            <span>
-              局况{" "}
+            <span>{translate("局况")}{" "}
               <b>
-                {board.vulnerability === "None"
+                {translate(board.vulnerability === "None"
                   ? "无局"
                   : board.vulnerability === "All"
                     ? "双方"
-                    : board.vulnerability}
+                    : board.vulnerability)}
               </b>
             </span>
             <span className="bar-spacer" />
             <button
               onClick={() => setRot((x) => (x + 1) % 4)}
-              title="旋转显示，不改变座位"
+              title={translate("旋转显示，不改变座位")}
             >
-              <RotateCcw size={15} /> 旋转牌桌
-            </button>
+              <RotateCcw size={15} />{translate(" 旋转牌桌")}</button>
           </div>
           {(error || errors.length > 0) && (
             <div className="notice error" role="alert">
-              {error || errors.join("；")}
-              <button onClick={() => setError("")} aria-label="关闭">
+              {translate(error || errors.join("；"))}
+              <button onClick={() => setError("")} aria-label={translate("关闭")}>
                 <X size={15} />
               </button>
             </div>
           )}
           {board.warnings.length > 0 && (
-            <div className="notice">{board.warnings.join("；")}</div>
+            <div className="notice">{translate(board.warnings.join("；"))}</div>
           )}
           <div className="analysis-grid">
             <div className="table-section">
@@ -918,9 +919,7 @@ export default function App() {
                 <div className="south">{hand(displaySeats[2])}</div>
                 <div className="west">{hand(displaySeats[3])}</div>
                 <div className="trick-center">
-                  <div className="trick-caption">
-                    第 {Math.min(13, shownTrickNumber)} 墩
-                  </div>
+                  <div className="trick-caption">{translate("第 {0} 墩", [Math.min(13, shownTrickNumber)])}</div>
                   <div
                     className={`played-cards ${completedVisible ? "completed-trick" : ""}`}
                   >
@@ -930,23 +929,23 @@ export default function App() {
                           className={`played-card played-position-${displaySeats.indexOf(c.seat)} ${suit(c.card) === "H" || suit(c.card) === "D" ? "red" : ""}`}
                           key={c.seat}
                         >
-                          <small>{c.seat}</small>
+                          <small>{translate(c.seat)}</small>
                           {fmt(c.card)}
                         </div>
                       ))
                     ) : (
                       <div className="lead-placeholder">
-                        <span>{currentSeat}</span>
-                        {remainingTricks(position)
+                        <span>{translate(currentSeat)}</span>
+                        {translate(remainingTricks(position)
                           ? `${LABEL[currentSeat]}家引牌`
-                          : "牌局结束"}
+                          : "牌局结束")}
                       </div>
                     )}
                   </div>
                   <div className="trick-winner">
-                    {completedVisible
+                    {translate(completedVisible
                       ? `${LABEL[position.history.at(-1)!.winner]}家赢墩`
-                      : ""}
+                      : "")}
                   </div>
                   <div className="trick-score">
                     <span>
@@ -962,14 +961,14 @@ export default function App() {
               <div className="playback">
                 <div>
                   <button
-                    title="返回分支起点"
+                    title={translate("返回分支起点")}
                     onClick={() => moveCursor(-100)}
                     disabled={!branch?.cursor}
                   >
                     <ChevronsLeft size={20} />
                   </button>
                   <button
-                    title="上一步"
+                    title={translate("上一步")}
                     onClick={() => moveCursor(-1)}
                     disabled={!branch?.cursor}
                   >
@@ -977,7 +976,7 @@ export default function App() {
                   </button>
                   <button
                     className="play-button"
-                    aria-label={auto ? "暂停" : "开始"}
+                    aria-label={translate(auto ? "暂停" : "开始")}
                     onClick={startPlayback}
                     disabled={
                       !auto &&
@@ -987,7 +986,7 @@ export default function App() {
                     {auto ? <Pause size={17} /> : <Play size={17} />}
                   </button>
                   <button
-                    title="下一步"
+                    title={translate("下一步")}
                     onClick={() => {
                       setAuto(false);
                       advance();
@@ -999,7 +998,7 @@ export default function App() {
                     <ChevronRight size={20} />
                   </button>
                 </div>
-                <span>{totalPlayed} / 52 张</span>
+                <span>{totalPlayed}{translate(" / 52 张")}</span>
                 <button
                   className={`auto-toggle ${autoMode ? "enabled" : ""}`}
                   aria-pressed={autoMode}
@@ -1007,18 +1006,15 @@ export default function App() {
                     setAutoMode((x) => !x);
                     setAuto(false);
                   }}
-                  title="墩内快速出牌，每墩结束停留1秒"
-                >
-                  自动
-                </button>
+                  title={translate("墩内快速出牌，每墩结束停留1秒")}
+                >{translate("自动")}</button>
                 <button onClick={() => moveCursor(-100)}>
-                  <RotateCcw size={14} /> 重置
-                </button>
+                  <RotateCcw size={14} />{translate(" 重置")}</button>
               </div>
               <div className="branch-row">
                 <GitBranch size={16} />
                 <select
-                  aria-label="分析分支"
+                  aria-label={translate("分析分支")}
                   value={session?.active ?? ""}
                   onChange={(e) => {
                     setAuto(false);
@@ -1028,24 +1024,23 @@ export default function App() {
                   {session ? (
                     session.branches.map((b) => (
                       <option value={b.id} key={b.id}>
-                        {b.name}
+                        {translate(b.name)}
                       </option>
                     ))
                   ) : (
-                    <option value="">原始牌路</option>
+                    <option value="">{translate("原始牌路")}</option>
                   )}
                 </select>
-                <label>
-                  首攻{" "}
+                <label>{translate("首攻")}{" "}
                   <select
-                    aria-label="修改首攻"
+                    aria-label={translate("修改首攻")}
                     value={leadChoice}
                     onChange={(e) => changeLead(e.target.value)}
                     disabled={
                       !!busy || !full || board.position.current.length > 0
                     }
                   >
-                    <option value="">自由选择</option>
+                    <option value="">{translate("自由选择")}</option>
                     {(board.position.hands[board.position.leader] ?? []).map(
                       (c) => (
                         <option key={c} value={c}>
@@ -1067,16 +1062,14 @@ export default function App() {
                   <GitBranch size={20} />
                 </span>
                 <span>
-                  <strong>查看完整最优牌路</strong>
-                  <small>沿着每一墩，理解每一次选择</small>
+                  <strong>{translate("查看完整最优牌路")}</strong>
+                  <small>{translate("沿着每一墩，理解每一次选择")}</small>
                 </span>
                 <ArrowUpRight size={22} />
               </button>
               {!full && (
                 <div className="observed">
-                  <label>
-                    录入未知方实际出牌（如 SA、HT）
-                    <input
+                  <label>{translate("录入未知方实际出牌（如 SA、HT）")}<input
                       value={observed}
                       onChange={(e) =>
                         setObserved(e.target.value.toUpperCase())
@@ -1089,9 +1082,7 @@ export default function App() {
                       playCard(observed.replace("10", "T") as Card, true);
                       setObserved("");
                     }}
-                  >
-                    记录出牌
-                  </button>
+                  >{translate("记录出牌")}</button>
                 </div>
               )}
             </div>
@@ -1100,36 +1091,28 @@ export default function App() {
                 <button
                   className={tab === "moves" ? "active" : ""}
                   onClick={() => setTab("moves")}
-                >
-                  逐张分析
-                </button>
+                >{translate("逐张分析")}</button>
                 <button
                   className={tab === "table" ? "active" : ""}
                   onClick={() => setTab("table")}
-                >
-                  定约表
-                </button>
+                >{translate("定约表")}</button>
                 <button
                   className={tab === "experiment" ? "active" : ""}
                   onClick={() => setTab("experiment")}
-                >
-                  两家牌
-                </button>
+                >{translate("两家牌")}</button>
                 {singleDummyEnabled && (
                   <button
                     className={tab === "lead" ? "active" : ""}
                     onClick={() => setTab("lead")}
-                  >
-                    首攻
-                  </button>
+                  >{translate("首攻")}</button>
                 )}
               </div>
               {busy && (
                 <div className="computing" role="status">
                   <LoaderCircle size={17} className="spin" />
                   <span>
-                    {busy}
-                    {progress > 0 ? ` · ${progress}` : ""}
+                    {translate(busy)}
+                    {translate(progress > 0 ? ` · ${progress}` : "")}
                   </span>
                   <button
                     onClick={() => {
@@ -1137,7 +1120,7 @@ export default function App() {
                       cancelAll();
                       setBusy("");
                     }}
-                    title="取消计算"
+                    title={translate("取消计算")}
                   >
                     <Square size={13} />
                   </button>
@@ -1153,12 +1136,12 @@ export default function App() {
                     </div>
                     <p>
                       {tricks === undefined
-                        ? "选择定约后查看四明手结果"
-                        : `最佳攻防下${tricks >= target ? "可完成定约" : "无法完成定约"}${tricks === target ? "" : ` · ${tricks >= target ? "+" : ""}${tricks - target}`}`}
+                        ? translate("选择定约后查看四明手结果")
+                        : translate("最佳攻防下{0}{1}", [translate(tricks >= target ? "可完成定约" : "无法完成定约"),
+                          tricks === target ? "" : ` · ${tricks >= target ? "+" : ""}${tricks - target}`])}
                     </p>
                     {tricks !== undefined && (
-                      <small>
-                        定约得分{" "}
+                      <small>{translate("定约得分")}{" "}
                         {score(
                           position.contract.level,
                           position.contract.strain,
@@ -1180,10 +1163,10 @@ export default function App() {
                   </div>
                   <div className="moves-heading">
                     <strong>
-                      {LABEL[currentSeat]}家可选出牌 ·{" "}
-                      {PLAY_KNOWLEDGE[classifyPlay(position)].label}
+                      {translate(LABEL[currentSeat])}{translate("家可选出牌 ·")}{" "}
+                      {translate(PLAY_KNOWLEDGE[classifyPlay(position)].label)}
                     </strong>
-                    <span>庄家最终墩数</span>
+                    <span>{translate("庄家最终墩数")}</span>
                   </div>
                   <div className="move-list">
                     {evaluation?.moves.map((m) => (
@@ -1201,8 +1184,8 @@ export default function App() {
                           {fmt(m.card)}
                         </span>
                         <small>
-                          {PLAY_KNOWLEDGE[classifyPlay(position, m.card)].label}{" "}
-                          · {m.optimal ? "最优选择" : `损失 ${m.loss} 墩`}
+                          {translate(PLAY_KNOWLEDGE[classifyPlay(position, m.card)].label)}{" "}
+                          · {translate(m.optimal ? "最优选择" : `损失 ${m.loss} 墩`)}
                         </small>
                         <b>{m.tricks}</b>
                         {m.optimal ? <Check size={14} /> : <span />}
@@ -1210,25 +1193,21 @@ export default function App() {
                     ))}
                     {!evaluation && !busy && (
                       <div className="empty-small">
-                        {full ? "等待求解" : "只知道两家牌时，请使用实验分析。"}
+                        {translate(full ? "等待求解" : "只知道两家牌时，请使用实验分析。")}
                       </div>
                     )}
                   </div>
-                  <p className="result-note">
-                    绿色标记表示当前行动方的最优牌。多张牌可以同样最优；每出一张，重新评估。
-                  </p>
+                  <p className="result-note">{translate("绿色标记表示当前行动方的最优牌。多张牌可以同样最优；每出一张，重新评估。")}</p>
                   <details className="play-knowledge">
-                    <summary>基本出牌库</summary>
+                    <summary>{translate("基本出牌库")}</summary>
                     {Object.values(PLAY_KNOWLEDGE).map((item) => (
                       <p key={item.label}>
-                        <strong>{item.label}</strong>
-                        <span>{item.short}</span>
-                        <small>{item.principle}</small>
+                        <strong>{translate(item.label)}</strong>
+                        <span>{translate(item.short)}</span>
+                        <small>{translate(item.principle)}</small>
                       </p>
                     ))}
-                    <footer>
-                      规则只解释出牌角色；具体选择仍须通过 DDS，不覆盖会损失墩数的结果。
-                    </footer>
+                    <footer>{translate("规则只解释出牌角色；具体选择仍须通过 DDS，不覆盖会损失墩数的结果。")}</footer>
                   </details>
                   {board.record.length > 0 && (
                     <button
@@ -1241,16 +1220,14 @@ export default function App() {
                           setReview,
                         )
                       }
-                    >
-                      复核导入记录 · {board.record.length} 张
-                    </button>
+                    >{translate("复核导入记录 · ")}{board.record.length}{translate(" 张")}</button>
                   )}
                 </>
               )}
               {tab === "table" && (
                 <div className="table-results">
-                  <h3>可得墩数</h3>
-                  <p>四方坐庄 × 五种定约</p>
+                  <h3>{translate("可得墩数")}</h3>
+                  <p>{translate("四方坐庄 × 五种定约")}</p>
                   {table ? (
                     <>
                       <table>
@@ -1269,7 +1246,7 @@ export default function App() {
                               {STRAINS.map((t, j) => (
                                 <td key={t}>
                                   <button
-                                    title={`设置 ${s} 家 ${t} 定约`}
+                                    title={translate(`设置 ${s} 家 ${t} 定约`)}
                                     onClick={() => {
                                       const b = structuredClone(board);
                                       b.position.contract.strain = t;
@@ -1291,20 +1268,20 @@ export default function App() {
                         </tbody>
                       </table>
                       <div className="par">
-                        <small>PAR · 均衡定约</small>
+                        <small>{translate("PAR · 均衡定约")}</small>
                         <strong>
-                          {table.par.score > 0 ? "+" : ""}
+                          {translate(table.par.score > 0 ? "+" : "")}
                           {table.par.score} <span>NS</span>
                         </strong>
-                        <p>{table.par.contracts.join(" / ")}</p>
+                        <p>{translate(table.par.contracts.join(" / "))}</p>
                       </div>
                     </>
                   ) : (
                     <p role="status">
-                      {tableError ||
+                      {translate(tableError ||
                         (!canCalculateTable(board)
                           ? "完整初始牌局录入后自动计算定约表"
-                          : "正在后台计算定约表…")}
+                          : "正在后台计算定约表…"))}
                     </p>
                   )}
                   <button
@@ -1328,22 +1305,16 @@ export default function App() {
                         JSON.stringify(all, null, 2),
                       );
                     }}
-                  >
-                    批量分析并导出
-                  </button>
+                  >{translate("批量分析并导出")}</button>
                 </div>
               )}
               {tab === "experiment" && (
                 <div className="experiment">
                   <span className="experiment-label">EXPERIMENTAL</span>
-                  <h3>看得见的牌，合理的推测</h3>
-                  <p>
-                    按已选首攻和当前出牌记录，在后台保留庄家、明手，按约束模拟两家防守牌。临时数据仅用于计算，不新增牌例，牌桌仍显示原来的四家牌。
-                  </p>
+                  <h3>{translate("看得见的牌，合理的推测")}</h3>
+                  <p>{translate("按已选首攻和当前出牌记录，在后台保留庄家、明手，按约束模拟两家防守牌。临时数据仅用于计算，不新增牌例，牌桌仍显示原来的四家牌。")}</p>
                   <div className="sample-fields">
-                    <label>
-                      样本数
-                      <input
+                    <label>{translate("样本数")}<input
                         type="number"
                         min="16"
                         max="2000"
@@ -1351,29 +1322,25 @@ export default function App() {
                         onChange={(e) => setSampleCount(Number(e.target.value))}
                       />
                     </label>
-                    <label>
-                      随机种子
-                      <input
+                    <label>{translate("随机种子")}<input
                         type="number"
                         value={sampleSeed}
                         onChange={(e) => setSampleSeed(Number(e.target.value))}
                       />
                     </label>
                   </div>
-                  <label>
-                    分析目标
-                    <select
+                  <label>{translate("分析目标")}<select
                       value={objective}
                       onChange={(e) =>
                         setObjective(e.target.value as typeof objective)
                       }
                     >
-                      <option value="contract">做成／击败定约优先</option>
-                      <option value="tricks">期望墩数优先</option>
+                      <option value="contract">{translate("做成／击败定约优先")}</option>
+                      <option value="tricks">{translate("期望墩数优先")}</option>
                     </select>
                   </label>
                   <details>
-                    <summary>叫牌与牌型约束</summary>
+                    <summary>{translate("叫牌与牌型约束")}</summary>
                     <fieldset disabled={!!busy} className="lead-config">
                       <LeadConstraints
                         key={`${board.id}-sample`}
@@ -1384,7 +1351,7 @@ export default function App() {
                         onDraftChange={updateAuctionDraft}
                         vulnerability={board.vulnerability}
                         editableSeats={[...SEATS]}
-                        auctionLabel="两家牌分析叫牌"
+                        auctionLabel={translate("两家牌分析叫牌")}
                         onValidityChange={setSampleInputValid}
                         onChange={cs=>{setSampleConstraints(cs);setSample(null);}}
                       />
@@ -1406,35 +1373,28 @@ export default function App() {
                         setError((e as Error).message);
                       }
                     }}
-                  >
-                    生成两家牌完整路线
-                  </button>
+                  >{translate("生成两家牌完整路线")}</button>
                   {sampleReadiness && (
                     <p className="hint">
-                      {sampleReadiness}
+                      {translate(sampleReadiness)}
                     </p>
                   )}
                   {sample && (
                     <>
-                      <p>
-                        完整条件路线 · {sample.samples} 个初始分布 · 种子 {sample.seed}
-                        <br />
-                        从第 {sample.startTrick} 墩到结束 · 本条模拟路线庄家共 {sample.declarerTricks} 墩
-                      </p>
+                      <p>{translate("完整条件路线 · {0} 个初始分布 · 种子 {1}", [sample.samples, sample.seed])}
+                        <br />{translate("从第 {0} 墩到结束 · 本条模拟路线庄家共 {1} 墩", [sample.startTrick, sample.declarerTricks])}</p>
                       <ol className="two-hand-route" start={sample.startTrick}>
                         {sample.tricks.map((trick,i)=><li key={i}>
                           <details open={i===0}>
-                            <summary>第 {sample.startTrick+i} 墩 · {trick.cards.map(c=>`${LABEL[c.seat]} ${fmt(c.card)}`).join(' → ')} · {LABEL[trick.winner]}赢墩</summary>
+                            <summary>{translate("第 {0} 墩", [sample.startTrick+i])} · {trick.cards.map(c=>`${translate(LABEL[c.seat])} ${fmt(c.card)}`).join(' → ')} · {translate(LABEL[trick.winner])}{translate("赢墩")}</summary>
                             {trick.cards.map(c=>{
                               const d=sample.decisions.find(x=>x.seat===c.seat&&x.card===c.card);
-                              return <p key={c.card}>{LABEL[c.seat]} {fmt(c.card)}：{d?`${d.samples} 个剩余分布下选择 · 做成估计 ${(d.success*100).toFixed(1)}% · 期望 ${d.expected.toFixed(2)} 墩`:side(c.seat)===side(position.contract.declarer)?'已出牌':'模拟防守应对（已出牌除外）'}</p>;
+                              return <p key={c.card}>{translate(LABEL[c.seat])} {fmt(c.card)}：{translate(d?`${d.samples} 个剩余分布下选择 · 做成估计 ${(d.success*100).toFixed(1)}% · 期望 ${d.expected.toFixed(2)} 墩`:side(c.seat)===side(position.contract.declarer)?'已出牌':'模拟防守应对（已出牌除外）')}</p>;
                             })}
                           </details>
                         </li>)}
                       </ol>
-                      <p className="hint">
-                        庄家和明手按剩余采样分布选择，防守用一个模拟分布展示应对，不读取原牌例隐藏手牌。此处是完整条件路线，不是对任意防守的保证；DDS 后续全知估计仍有策略融合误差。实际出牌不同后，从新局面重新生成。
-                      </p>
+                      <p className="hint">{translate("庄家和明手按剩余采样分布选择，防守用一个模拟分布展示应对，不读取原牌例隐藏手牌。此处是完整条件路线，不是对任意防守的保证；DDS 后续全知估计仍有策略融合误差。实际出牌不同后，从新局面重新生成。")}</p>
                     </>
                   )}
                 </div>
@@ -1443,18 +1403,15 @@ export default function App() {
                 <div className="experiment lead-analysis">
                   <div className="lead-panel-toolbar">
                     <span className="experiment-label">SINGLE DUMMY</span>
-                    <button className="lead-back" title="关闭首攻分析并返回原牌局" onClick={closeSingleDummy}>
-                      <ChevronLeft size={14} aria-hidden="true" /> 返回原牌局
-                    </button>
+                    <button className="lead-back" title={translate("关闭首攻分析并返回原牌局")} onClick={closeSingleDummy}>
+                      <ChevronLeft size={14} aria-hidden="true" />{translate(" 返回原牌局")}</button>
                   </div>
-                  <h3>只看首攻手，比较每一张牌</h3>
-                  <p>
-                    仅用原始发牌中{LABEL[board.position.leader]}家 13 张手牌，其余三家按约束模拟。临时数据只用于计算，不新增牌例，也不改变牌桌或播放进度。
-                  </p>
+                  <h3>{translate("只看首攻手，比较每一张牌")}</h3>
+                  <p>{translate("仅用原始发牌中{0}家 13 张手牌，其余三家按约束模拟。临时数据只用于计算，不新增牌例，也不改变牌桌或播放进度。", [translate(LABEL[board.position.leader])])}</p>
                   <div className="simulation-count">
                     <div>
-                      <strong>模拟次数</strong>
-                      <small>次数越多越稳定，耗时也更长</small>
+                      <strong>{translate("模拟次数")}</strong>
+                      <small>{translate("次数越多越稳定，耗时也更长")}</small>
                     </div>
                     <div className="count-options">
                       {[250, 1000, 2500, 5000].map((count) => (
@@ -1468,9 +1425,9 @@ export default function App() {
                         </button>
                       ))}
                       <label>
-                        <span>自定义</span>
+                        <span>{translate("自定义")}</span>
                         <input
-                          aria-label="自定义模拟次数"
+                          aria-label={translate("自定义模拟次数")}
                           disabled={!!busy}
                           type="number"
                           min="16"
@@ -1484,39 +1441,31 @@ export default function App() {
                     </div>
                   </div>
                   <fieldset disabled={!!busy} className="lead-config"><LeadConstraints key={board.id} leader={board.position.leader} declarer={board.position.contract.declarer} dealer={board.dealer} auction={board.auction} draft={auctionDraft} onDraftChange={updateAuctionDraft} vulnerability={board.vulnerability} editableSeats={[...SEATS]} onValidityChange={setLeadInputValid} onChange={cs=>{setLeadConstraints(cs);setLeadSample(null);}} /></fieldset>
-                  <label>求解模式
-                    <select aria-label="首攻求解模式" disabled={!!busy} value={leadMode} onChange={e=>{setLeadMode(e.target.value as 'beat'|'exact');setLeadSample(null);}}>
-                      <option value="beat">快速 · 仅击败率</option>
-                      <option value="exact">精确 · 击败率与平均墩数</option>
+                  <label>{translate("求解模式")}<select aria-label={translate("首攻求解模式")} disabled={!!busy} value={leadMode} onChange={e=>{setLeadMode(e.target.value as 'beat'|'exact');setLeadSample(null);}}>
+                      <option value="beat">{translate("快速 · 仅击败率")}</option>
+                      <option value="exact">{translate("精确 · 击败率与平均墩数")}</option>
                     </select>
                   </label>
-                  <p className="hint">{leadMode==='beat'?'只判断各首攻能否击败定约，不计算平均墩数。':'计算各首攻的精确墩数，耗时较长。'} 按设备能力并行计算。</p>
+                  <p className="hint">{translate(leadMode==='beat'?'只判断各首攻能否击败定约，不计算平均墩数。':'计算各首攻的精确墩数，耗时较长。')}{translate(" 按设备能力并行计算。")}</p>
                   <div className="lead-readiness">
-                    <span>首攻方</span>
-                    <b>{LABEL[board.position.leader]}家</b>
-                    <span>用于分析</span>
-                    <b>
-                      仅首攻手
-                    </b>
+                    <span>{translate("首攻方")}</span>
+                    <b>{translate(LABEL[board.position.leader])}{translate("家")}</b>
+                    <span>{translate("用于分析")}</span>
+                    <b>{translate("仅首攻手")}</b>
                   </div>
                   {board.position.hands[board.position.leader]?.length !== 13 || board.position.current.length>0 || board.position.history.length>0 || board.position.won[0]+board.position.won[1]>0 ? (
                     <div className="lead-setup">
-                      <p>
-                        请录入未出牌的原始牌局，至少补齐首攻方 13 张牌；其他三家无需修改。
-                      </p>
+                      <p>{translate("请录入未出牌的原始牌局，至少补齐首攻方 13 张牌；其他三家无需修改。")}</p>
                       <button
                         className="light-button"
                         onClick={() => setEditing(structuredClone(board))}
                       >
-                        <Settings2 size={14} /> 编辑当前牌局
-                      </button>
+                        <Settings2 size={14} />{translate(" 编辑当前牌局")}</button>
                     </div>
                   ) : (
                     <>
                       <div className="sample-fields">
-                        <label>
-                          随机种子
-                          <input
+                        <label>{translate("随机种子")}<input
                             type="number"
                             value={sampleSeed}
                             onChange={(e) =>
@@ -1525,17 +1474,15 @@ export default function App() {
                           />
                         </label>
                       </div>
-                      <label>
-                        排序目标
-                        <select
+                      <label>{translate("排序目标")}<select
                           disabled={!!busy||leadMode==='beat'}
                           value={leadMode==='beat'?'contract':objective}
                           onChange={(e) =>
                             {setObjective(e.target.value as typeof objective);setLeadSample(null);}
                           }
                         >
-                          <option value="contract">击败定约概率优先</option>
-                          <option value="tricks">庄家平均墩数最少</option>
+                          <option value="contract">{translate("击败定约概率优先")}</option>
+                          <option value="tricks">{translate("庄家平均墩数最少")}</option>
                         </select>
                       </label>
                       <button
@@ -1562,16 +1509,14 @@ export default function App() {
                             setError((e as Error).message);
                           }
                         }}
-                      >
-                        开始首攻分析
-                      </button>
+                      >{translate("开始首攻分析")}</button>
                     </>
                   )}
                   {leadSample && (
                     <div className="lead-ranking">
                       <div className="lead-ranking-head">
-                        <span>{leadSample.samples} 个有效分布 / 目标 {leadCount} · 尝试 {leadSample.attempts} 次{leadSample.samples<leadCount?' · 未达到目标，约束接受率较低':''}</span>
-                        <small>种子 {leadSample.seed} · {leadSample.workers} 个线程 · 采样 {(leadSample.samplingMs/1000).toFixed(1)} 秒 / 求解 {(leadSample.solveMs/1000).toFixed(1)} 秒</small>
+                        <span>{leadSample.samples}{translate(" 个有效分布 / 目标 ")}{leadCount}{translate(" · 尝试 ")}{leadSample.attempts}{translate(" 次")}{translate(leadSample.samples<leadCount?' · 未达到目标，约束接受率较低':'')}</span>
+                        <small>{translate("种子 ")}{leadSample.seed} · {leadSample.workers}{translate(" 个线程 · 采样 ")}{(leadSample.samplingMs/1000).toFixed(1)}{translate(" 秒 / 求解 ")}{(leadSample.solveMs/1000).toFixed(1)}{translate(" 秒")}</small>
                       </div>
                       {leadSample.moves.map((move, index) => (
                         <div
@@ -1590,24 +1535,20 @@ export default function App() {
                             {fmt(move.card)}
                           </b>
                           <span>
-                            {(move.success * 100).toFixed(1)}%
-                            <small>
-                              击败定约 · 95% 区间{" "}
-                              {(move.interval[0] * 100).toFixed(0)}–
-                              {(move.interval[1] * 100).toFixed(0)}%
+                            {translate((move.success * 100).toFixed(1))}%
+                            <small>{translate("击败定约 · 95% 区间")}{" "}
+                              {translate((move.interval[0] * 100).toFixed(0))}–
+                              {translate((move.interval[1] * 100).toFixed(0))}%
                             </small>
                           </span>
                           <span>
-                            {move.expected===null?'—':move.expected.toFixed(2)}
-                            <small>{move.expected===null?'快速模式不计算墩数':'庄家平均墩数'}</small>
+                            {translate(move.expected===null?'—':move.expected.toFixed(2))}
+                            <small>{translate(move.expected===null?'快速模式不计算墩数':'庄家平均墩数')}</small>
                           </span>
-                          {index === 0 && <em>首选</em>}
+                          {index === 0 && <em>{translate("首选")}</em>}
                         </div>
                       ))}
-                      <p className="hint">
-                        区间只表示有限采样的不确定性；DDS
-                        在首攻后按四明手最优打法求解。
-                      </p>
+                      <p className="hint">{translate("区间只表示有限采样的不确定性；DDS 在首攻后按四明手最优打法求解。")}</p>
                     </div>
                   )}
                 </div>
@@ -1616,12 +1557,11 @@ export default function App() {
           </div>
           {review && (
             <section className="line-panel">
-              <h2>原始记录复核</h2>
+              <h2>{translate("原始记录复核")}</h2>
               <div className="record-list">
                 {review.map((m, i) => (
                   <span key={i} className={m.loss ? "mistake" : ""}>
-                    {i + 1}. {m.seat} {fmt(m.card)} → {m.tricks} 墩
-                    {m.loss ? `（损失 ${m.loss}）` : ""}
+                    {i + 1}. {translate(m.seat)} {fmt(m.card)} → {m.tricks}{translate(" 墩")}{translate(m.loss ? `（损失 ${m.loss}）` : "")}
                   </span>
                 ))}
               </div>
@@ -1645,9 +1585,7 @@ export default function App() {
                     return s;
                   });
                 }}
-              >
-                在牌桌上回放此记录
-              </button>
+              >{translate("在牌桌上回放此记录")}</button>
             </section>
           )}
           {lineOpen && lineResult && (
@@ -1656,25 +1594,18 @@ export default function App() {
                 <div className="eyebrow">FOLLOW THE TRACE</div>
                 <button
                   onClick={() => setLineOpen(false)}
-                  aria-label="收起牌路"
+                  aria-label={translate("收起牌路")}
                 >
                   <X size={18} />
                 </button>
               </div>
-              <h2>每一墩，都有迹可循。</h2>
-              <p>
-                从当前局面出发，双方最佳应对下的一条完整样例。并列最优路线可能不同。
-              </p>
+              <h2>{translate("每一墩，都有迹可循。")}</h2>
+              <p>{translate("从当前局面出发，双方最佳应对下的一条完整样例。并列最优路线可能不同。")}</p>
               <div className="line-meta">
-                <span>
-                  庄家可得 <b>{lineResult.line.initialTricks}</b> 墩
-                </span>
-                <span>
-                  剩余 <b>{lineResult.line.steps.length}</b> 张
-                </span>
+                <span>{translate("庄家可得 ")}<b>{lineResult.line.initialTricks}</b>{translate(" 墩")}</span>
+                <span>{translate("剩余 ")}<b>{lineResult.line.steps.length}</b>{translate(" 张")}</span>
                 <button className="primary" onClick={applyLine}>
-                  <Play size={15} /> 放到牌桌逐张回放
-                </button>
+                  <Play size={15} />{translate(" 放到牌桌逐张回放")}</button>
                 <button
                   onClick={() =>
                     download(
@@ -1705,12 +1636,12 @@ export default function App() {
                         {t.cards.map((c, cardIndex) => (
                           <span key={c.seat}>
                             <small>
-                              {c.seat} ·{" "}
-                              {cardIndex
+                              {translate(c.seat)} ·{" "}
+                              {translate(cardIndex
                                 ? "跟牌"
                                 : i === 0 && position.history.length === 0
                                   ? "首攻"
-                                  : "攻牌"}
+                                  : "攻牌")}
                             </small>
                             <b
                               className={
@@ -1722,55 +1653,50 @@ export default function App() {
                           </span>
                         ))}
                       </div>
-                      <span className="winner">{LABEL[t.winner]}家赢墩</span>
+                      <span className="winner">{translate(LABEL[t.winner])}{translate("家赢墩")}</span>
                     </div>
                   ))}
               </div>
               <div className="tactics">
-                <h3>打法与关键节点</h3>
+                <h3>{translate("打法与关键节点")}</h3>
                 {lineResult.tactics.items.length ? (
                   lineResult.tactics.items.map((t, i) => (
                     <article key={i}>
                       <div>
-                        <span className="tactic-index">第 {t.trick} 墩</span>
-                        <strong>{t.title}</strong>
+                        <span className="tactic-index">{translate("第 {0} 墩", [t.trick])}</span>
+                        <strong>{translate(t.title)}</strong>
                         <small
                           className={t.status === "verified" ? "verified" : ""}
                         >
-                          {t.status === "verified"
+                          {translate(t.status === "verified"
                             ? "已验证"
                             : t.status === "conditional"
                               ? "条件结构"
-                              : "待验证"}
+                              : "待验证")}
                         </small>
                       </div>
-                      <p>{t.explanation}</p>
+                      <p>{translate(t.explanation)}</p>
                       <details>
-                        <summary>查看验证依据</summary>
+                        <summary>{translate("查看验证依据")}</summary>
                         {t.evidence.map((e, j) => (
-                          <p key={j}>{e}</p>
+                          <p key={j}>{translate(e)}</p>
                         ))}
                       </details>
                     </article>
                   ))
                 ) : (
-                  <p>
-                    这条样例未识别到有充分证据的特殊战术。每张最优选择已由 DDS
-                    求解；不强行给普通出牌贴上战术名称。
-                  </p>
+                  <p>{translate("这条样例未识别到有充分证据的特殊战术。每张最优选择已由 DDS 求解；不强行给普通出牌贴上战术名称。")}</p>
                 )}
                 {!lineResult.tactics.complete && (
-                  <p>战术搜索达到时间预算，尚有分支未验证。</p>
+                  <p>{translate("战术搜索达到时间预算，尚有分支未验证。")}</p>
                 )}
               </div>
             </section>
           )}
           <footer>
             <span className="footer-brand">
-              <img src={theme === "dark" ? "/brand/tricktrace-mark-dark.png" : "/brand/tricktrace-mark.png"} alt="" />
-              墩迹 TrickTrace
-            </span>
-            <span>循牌而行，见墩之迹。</span>
+              <img src={theme === "dark" ? "/brand/tricktrace-mark-dark.png" : "/brand/tricktrace-mark.png"} alt="" />{translate("墩迹 TrickTrace")}</span>
+            <span>{translate("循牌而行，见墩之迹。")}</span>
             <a
               href="https://github.com/dds-bridge/dds"
               target="_blank"
@@ -1799,12 +1725,12 @@ export default function App() {
             <button
               className="close"
               onClick={() => setPaste(false)}
-              aria-label="关闭"
+              aria-label={translate("关闭")}
             >
               <X />
             </button>
-            <h2>粘贴牌谱</h2>
-            <p>PBN、DLM、BBO LIN 或项目 JSON</p>
+            <h2>{translate("粘贴牌谱")}</h2>
+            <p>{translate("PBN、DLM、BBO LIN 或项目 JSON")}</p>
             <textarea
               rows={12}
               value={pasteText}
@@ -1821,9 +1747,7 @@ export default function App() {
                   setPaste(false);
                 }
               }}
-            >
-              导入牌局
-            </button>
+            >{translate("导入牌局")}</button>
           </section>
         </div>
       )}
@@ -1833,36 +1757,21 @@ export default function App() {
             <button
               className="close"
               onClick={() => setHelp(false)}
-              aria-label="关闭"
+              aria-label={translate("关闭")}
             >
               <X />
             </button>
             <div className="eyebrow">QUICK GUIDE</div>
-            <h2>从一张截图，到一条牌路。</h2>
+            <h2>{translate("从一张截图，到一条牌路。")}</h2>
             <ol>
-              <li>
-                上传截图或导入文件。识牌后对照原图，确认四家方位、手牌和定约。
-              </li>
-              <li>
-                手输按 ♠ ♥ ♦ ♣ 顺序，用点分隔。例：AK73.Q94.KQ98.A3；缺门填
-                -，未知整手填 ?。
-              </li>
-              <li>
-                点击牌桌中的合法牌查看变化；绿色数字表示当前一方的最优选择，数字均为庄家最终墩数。
-              </li>
-              <li>
-                点击牌桌下方按钮，展开完整样例；放到牌桌后可逐张回放、回退并探索分支。
-              </li>
-              <li>
-                两家牌分析先选择首攻，自动在临时副本中保留庄家和明手、模拟防守牌。牌桌保留四家显示，按实际出牌继续更新分析；残局须提供完整已出牌信息。
-              </li>
-              <li>
-                保存项目 JSON 可保留分支和进度；导出 PBN 适合交换完整初始牌局。
-              </li>
+              <li>{translate("上传截图或导入文件。识牌后对照原图，确认四家方位、手牌和定约。")}</li>
+              <li>{translate("手输按 ♠ ♥ ♦ ♣ 顺序，用点分隔。例：AK73.Q94.KQ98.A3；缺门填 -，未知整手填 ?。")}</li>
+              <li>{translate("点击牌桌中的合法牌查看变化；绿色数字表示当前一方的最优选择，数字均为庄家最终墩数。")}</li>
+              <li>{translate("点击牌桌下方按钮，展开完整样例；放到牌桌后可逐张回放、回退并探索分支。")}</li>
+              <li>{translate("两家牌分析先选择首攻，自动在临时副本中保留庄家和明手、模拟防守牌。牌桌保留四家显示，按实际出牌继续更新分析；残局须提供完整已出牌信息。")}</li>
+              <li>{translate("保存项目 JSON 可保留分支和进度；导出 PBN 适合交换完整初始牌局。")}</li>
             </ol>
-            <p>
-              数据保存在当前浏览器。清理浏览器数据前请导出项目。战术名称仅在证据支持时显示，复杂组合可能标记为条件结构。当前识牌为测试版：扇形与叠放手牌仍可能漏牌或误认，方位、定约及当前墩必须核对；复杂挤牌尚未完成完整分类验收。
-            </p>
+            <p>{translate("数据保存在当前浏览器。清理浏览器数据前请导出项目。战术名称仅在证据支持时显示，复杂组合可能标记为条件结构。当前识牌为测试版：扇形与叠放手牌仍可能漏牌或误认，方位、定约及当前墩必须核对；复杂挤牌尚未完成完整分类验收。")}</p>
           </section>
         </div>
       )}
@@ -1922,31 +1831,29 @@ function Editor({
   return (
     <div className="modal-backdrop">
       <section className={`modal editor ${imageURL ? "with-image" : ""}`}>
-        <button className="close" onClick={onClose} aria-label="关闭">
+        <button className="close" onClick={onClose} aria-label={translate("关闭")}>
           <X />
         </button>
         <div className="editor-content">
           <div className="eyebrow">
-            {imageURL ? "RECOGNITION REVIEW" : "DEAL EDITOR"}
+            {translate(imageURL ? "RECOGNITION REVIEW" : "DEAL EDITOR")}
           </div>
-          <h2>{imageURL ? "核对识别结果" : "编辑牌局"}</h2>
+          <h2>{translate(imageURL ? "核对识别结果" : "编辑牌局")}</h2>
           <p>
-            {imageURL
+            {translate(imageURL
               ? "先确认牌张与方位，再开始分析。标为未知的信息不会自动猜填。"
-              : "手牌依次为 ♠ ♥ ♦ ♣，以点分隔。缺门用 -，未知整手用 ?。"}
+              : "手牌依次为 ♠ ♥ ♦ ♣，以点分隔。缺门用 -，未知整手用 ?。")}
           </p>
           {recognition && (
-            <div className="notice">{recognition.warnings.join("；")}</div>
+            <div className="notice">{translate(recognition.warnings.join("；"))}</div>
           )}
           {err && (
             <div role="alert" className="notice error">
-              {err}
+              {translate(err)}
             </div>
           )}
           <div className="editor-number">
-            <label>
-              第几副牌
-              <input
+            <label>{translate("第几副牌")}<input
                 type="number"
                 min="1"
                 max="99"
@@ -1966,15 +1873,9 @@ function Editor({
                 }}
               />
             </label>
-            <span>
-              按编号自动设置发牌人和局况
-              <br />
-              可在下方单独调整
-            </span>
+            <span>{translate("按编号自动设置发牌人和局况")}<br />{translate("可在下方单独调整")}</span>
           </div>
-          <label>
-            牌局名称
-            <input
+          <label>{translate("牌局名称")}<input
               value={b.name}
               onChange={(e) => patch((q) => (q.name = e.target.value))}
             />
@@ -1983,15 +1884,11 @@ function Editor({
             <button
               aria-pressed={inputMode === "cards"}
               onClick={() => setInputMode("cards")}
-            >
-              点击选牌
-            </button>
+            >{translate("点击选牌")}</button>
             <button
               aria-pressed={inputMode === "text"}
               onClick={() => setInputMode("text")}
-            >
-              文本输入
-            </button>
+            >{translate("文本输入")}</button>
           </div>
           {inputMode === "cards" && (
             <CardPicker hands={hands} onChange={setHands} />
@@ -2000,8 +1897,7 @@ function Editor({
             {SEATS.map((s, i) => (
               <label key={s}>
                 <span>
-                  {s} · {LABEL[s]}家
-                </span>
+                  {s} · {translate(LABEL[s])}{translate("家")}</span>
                 <input
                   value={hands[i]}
                   onChange={(e) =>
@@ -2018,16 +1914,12 @@ function Editor({
                     } catch {
                       return "!";
                     }
-                  })()}{" "}
-                  张
-                </small>
+                  })()}{" "}{translate("张")}</small>
               </label>
             ))}
           </div>
           <div className="editor-fields">
-            <label>
-              定约
-              <select
+            <label>{translate("定约")}<select
                 value={b.position.contract.level}
                 onChange={(e) =>
                   patch(
@@ -2040,9 +1932,7 @@ function Editor({
                 ))}
               </select>
             </label>
-            <label>
-              将牌
-              <select
+            <label>{translate("将牌")}<select
                 value={b.position.contract.strain}
                 onChange={(e) =>
                   patch(
@@ -2059,9 +1949,7 @@ function Editor({
                 ))}
               </select>
             </label>
-            <label>
-              庄家
-              <select
+            <label>{translate("庄家")}<select
                 value={b.position.contract.declarer}
                 onChange={(e) =>
                   patch((q) => {
@@ -2075,9 +1963,7 @@ function Editor({
                 ))}
               </select>
             </label>
-            <label>
-              加倍
-              <select
+            <label>{translate("加倍")}<select
                 value={b.position.contract.doubled}
                 onChange={(e) =>
                   patch(
@@ -2087,14 +1973,12 @@ function Editor({
                   )
                 }
               >
-                <option value={0}>无</option>
+                <option value={0}>{translate("无")}</option>
                 <option value={1}>X</option>
                 <option value={2}>XX</option>
               </select>
             </label>
-            <label>
-              发牌
-              <select
+            <label>{translate("发牌")}<select
                 value={b.dealer}
                 onChange={(e) =>
                   patch((q) => (q.dealer = e.target.value as Seat))
@@ -2105,9 +1989,7 @@ function Editor({
                 ))}
               </select>
             </label>
-            <label>
-              局况
-              <select
+            <label>{translate("局况")}<select
                 value={b.vulnerability}
                 onChange={(e) =>
                   patch(
@@ -2118,17 +2000,15 @@ function Editor({
                 }
               >
                 {["None", "NS", "EW", "All"].map((v) => (
-                  <option key={v}>{v}</option>
+                  <option key={v}>{translate(v)}</option>
                 ))}
               </select>
             </label>
           </div>
           <details open={!!current}>
-            <summary>残局／当前墩设置</summary>
+            <summary>{translate("残局／当前墩设置")}</summary>
             <div className="editor-fields">
-              <label>
-                本墩引牌方
-                <select
+              <label>{translate("本墩引牌方")}<select
                   value={b.position.leader}
                   onChange={(e) =>
                     patch((q) => (q.position.leader = e.target.value as Seat))
@@ -2139,9 +2019,7 @@ function Editor({
                   ))}
                 </select>
               </label>
-              <label>
-                NS 已得墩
-                <input
+              <label>{translate("NS 已得墩")}<input
                   type="number"
                   min="0"
                   max="13"
@@ -2151,9 +2029,7 @@ function Editor({
                   }
                 />
               </label>
-              <label>
-                EW 已得墩
-                <input
+              <label>{translate("EW 已得墩")}<input
                   type="number"
                   min="0"
                   max="13"
@@ -2164,23 +2040,18 @@ function Editor({
                 />
               </label>
             </div>
-            <label>
-              当前墩已出牌，按顺序空格分隔
-              <input
-                placeholder="如 SJ S2"
+            <label>{translate("当前墩已出牌，按顺序空格分隔")}<input
+                placeholder={translate("如 SJ S2")}
                 value={current}
                 onChange={(e) => setCurrent(e.target.value)}
               />
             </label>
-            <p>
-              当前墩中的牌不应再次出现在剩余手牌中。两家牌残局需要完整历史才能确定未知牌池。
-            </p>
+            <p>{translate("当前墩中的牌不应再次出现在剩余手牌中。两家牌残局需要完整历史才能确定未知牌池。")}</p>
           </details>
           <div className="modal-actions">
-            <button onClick={onClose}>取消</button>
+            <button onClick={onClose}>{translate("取消")}</button>
             <button className="primary" onClick={save}>
-              <Check size={16} /> 确认并分析
-            </button>
+              <Check size={16} />{translate(" 确认并分析")}</button>
           </div>
         </div>
         {imageURL && <ImageReview url={imageURL} recognition={recognition} />}

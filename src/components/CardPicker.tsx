@@ -1,3 +1,4 @@
+import { translate } from "../i18n";
 import { useState } from "react";
 import {
   SEATS,
@@ -48,7 +49,7 @@ export default function CardPicker({
   }
   return (
     <div className="card-picker">
-      <div className="seat-picker" role="group" aria-label="选择录入手牌的方位">
+      <div className="seat-picker" role="group" aria-label={translate("选择录入手牌的方位")}>
         {SEATS.map((s, i) => (
           <button
             type="button"
@@ -59,14 +60,12 @@ export default function CardPicker({
               setError("");
             }}
           >
-            <b>{s}</b> {LABEL[s]}家{" "}
+            <b>{s}</b> {translate(LABEL[s])}{translate("家")}{" "}
             <small>{parsed[i]?.length ?? "?"} / 13</small>
           </button>
         ))}
       </div>
-      <div className="picker-hint">
-        正在录入 <b>{LABEL[active]}家</b> · 连续点击添加，再点一次移除
-      </div>
+      <div className="picker-hint">{translate("正在录入 ")}<b>{translate(LABEL[active])}{translate("家")}</b>{translate(" · 连续点击添加，再点一次移除")}</div>
       <div className="picker-grid">
         {SUITS.map((s) => (
           <div className={s === "H" || s === "D" ? "red" : ""} key={s}>
@@ -81,15 +80,15 @@ export default function CardPicker({
                 <button
                   type="button"
                   key={r}
-                  aria-label={`分配 ${s}${r} 给 ${active}`}
+                  aria-label={translate(`分配 ${s}${r} 给 ${active}`)}
                   aria-pressed={selected}
                   disabled={elsewhere}
                   className={`${selected ? "assigned" : elsewhere ? "unavailable" : ""} ${owners.length > 1 ? "duplicate" : ""}`}
                   onClick={() => toggle(card)}
                   title={
-                    owners.length
+                    translate(owners.length
                       ? `已在 ${owners.join("、")}；当前家已持有时点击即可移除`
-                      : `添加到${LABEL[active]}家`
+                      : `添加到${LABEL[active]}家`)
                   }
                 >
                   {r === "T" ? "10" : r}
@@ -102,7 +101,7 @@ export default function CardPicker({
       </div>
       {error && (
         <p role="alert" className="picker-error">
-          {error}
+          {translate(error)}
         </p>
       )}
       <div className="picker-summary">
@@ -110,7 +109,7 @@ export default function CardPicker({
           <label key={s} className={active === s ? "selected" : ""}>
             <b>{s}</b>
             <input
-              aria-label={`${s} 手牌文本`}
+              aria-label={translate(`${s} 手牌文本`)}
               value={hands[i]}
               onFocus={() => setActive(s)}
               onChange={(e) => {
